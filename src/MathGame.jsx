@@ -3,8 +3,9 @@ import confetti from 'canvas-confetti';
 import './MathGame.css';
 import { Trophy, Star, ArrowLeft, Play } from 'lucide-react';
 import PlayerSelect from './components/PlayerSelect';
+import { ImageStore } from './assets/ImageStore';
 
-const THEMES = [null, '/bg_scifi.png', '/bg_alien.png', '/bg_cartoon.png'];
+const THEMES = [null, ImageStore.bg_scifi_png, ImageStore.bg_alien_png, ImageStore.bg_cartoon_png];
 
 export default function MathGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);

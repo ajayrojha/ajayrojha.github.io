@@ -4,7 +4,8 @@ import path from 'path';
 const assetsDir = 'public';
 const files = [
   'france.jpg', 'egypt.jpg', 'japan.jpg', 'india.jpg', 
-  'brazil.jpg', 'australia.jpg', 'china.jpg', 'usa.jpg'
+  'brazil.jpg', 'australia.jpg', 'china.jpg', 'usa.jpg',
+  'bg_scifi.png', 'bg_alien.png', 'bg_cartoon.png'
 ];
 
 let output = 'export const ImageStore = {\n';
