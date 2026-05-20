@@ -2,20 +2,29 @@ import https from 'https';
 import fs from 'fs';
 
 const images = [
-  { name: 'france.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Eiffel_tower_from_trocadero.jpg/640px-Eiffel_tower_from_trocadero.jpg' },
-  { name: 'egypt.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/All_Gizah_Pyramids.jpg/640px-All_Gizah_Pyramids.jpg' },
-  { name: 'japan.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/080103_hakkoda16.jpg/640px-080103_hakkoda16.jpg' },
-  { name: 'india.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Taj_Mahal_%28Edited%29.jpeg/640px-Taj_Mahal_%28Edited%29.jpeg' },
-  { name: 'brazil.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Christ_the_Redeemer_-_Rio_de_Janeiro%2C_Brazil.jpg/640px-Christ_the_Redeemer_-_Rio_de_Janeiro%2C_Brazil.jpg' },
-  { name: 'australia.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Sydney_Opera_House_Sails.jpg/640px-Sydney_Opera_House_Sails.jpg' },
-  { name: 'china.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/The_Great_Wall_of_China_at_Jinshanling-edit.jpg/640px-The_Great_Wall_of_China_at_Jinshanling-edit.jpg' },
-  { name: 'usa.jpg', url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Statue_of_Liberty_7.jpg/640px-Statue_of_Liberty_7.jpg' }
+  { name: 'france.jpg', url: 'https://images.pexels.com/photos/699466/pexels-photo-699466.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'egypt.jpg', url: 'https://images.pexels.com/photos/71241/pexels-photo-71241.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'japan.jpg', url: 'https://images.pexels.com/photos/161401/mount-fuji-japan-mountain-shizuoka-161401.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'india.jpg', url: 'https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'brazil.jpg', url: 'https://images.pexels.com/photos/2816732/pexels-photo-2816732.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'australia.jpg', url: 'https://images.pexels.com/photos/1878293/pexels-photo-1878293.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'china.jpg', url: 'https://images.pexels.com/photos/1423580/pexels-photo-1423580.jpeg?auto=compress&cs=tinysrgb&w=640' },
+  { name: 'usa.jpg', url: 'https://images.pexels.com/photos/356844/pexels-photo-356844.jpeg?auto=compress&cs=tinysrgb&w=640' }
 ];
 
 images.forEach(img => {
   const file = fs.createWriteStream(`public/${img.name}`);
-  https.get(img.url, (response) => {
-    response.pipe(file);
+  const options = {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    }
+  };
+  https.get(img.url, options, (response) => {
+    if (response.statusCode === 302 || response.statusCode === 301) {
+       https.get(response.headers.location, options, (res2) => res2.pipe(file));
+    } else {
+       response.pipe(file);
+    }
     file.on('finish', () => {
       file.close();
       console.log(`Downloaded ${img.name}`);
