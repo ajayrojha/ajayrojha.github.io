@@ -4,52 +4,62 @@ import './GeographyGame.css';
 import { Trophy, ArrowLeft, Earth } from 'lucide-react';
 import PlayerSelect from './components/PlayerSelect';
 
+// Bundler-safe Image Imports
+import imgFrance from './assets/france.jpg';
+import imgEgypt from './assets/egypt.jpg';
+import imgJapan from './assets/japan.jpg';
+import imgIndia from './assets/india.jpg';
+import imgBrazil from './assets/brazil.jpg';
+import imgAustralia from './assets/australia.jpg';
+import imgChina from './assets/china.jpg';
+import imgUsa from './assets/usa.jpg';
+
 const DATA = [
   {
     country: "France",
-    image: "/france.jpg",
+    image: imgFrance,
     artifact: "Eiffel Tower",
     explanation: "The Eiffel Tower was built in Paris in 1889! It was originally criticized by some of France's leading artists and intellectuals for its design, but it has become a global cultural icon of France."
   },
   {
     country: "Egypt",
-    image: "/egypt.jpg",
+    image: imgEgypt,
     artifact: "The Great Pyramids of Giza",
     explanation: "These ancient pyramids were built as tombs for the country's pharaohs over 4,500 years ago during the Old Kingdom period. The Great Pyramid is the oldest of the Seven Wonders of the Ancient World!"
   },
   {
     country: "Japan",
-    image: "/japan.jpg",
+    image: imgJapan,
     artifact: "Mount Fuji",
     explanation: "Mount Fuji is an active stratovolcano and the highest mountain in Japan, standing 3,776 meters tall. It's considered one of Japan's three sacred mountains and has inspired artists for centuries."
   },
   {
     country: "India",
-    image: "/india.jpg",
+    image: imgIndia,
     artifact: "Taj Mahal",
     explanation: "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra. It was commissioned in 1632 by the Mughal emperor Shah Jahan to house the tomb of his favorite wife, Mumtaz Mahal."
   },
   {
     country: "Brazil",
-    image: "/brazil.jpg",
+    image: imgBrazil,
     artifact: "Christ the Redeemer",
     explanation: "This colossal Art Deco statue of Jesus Christ is located in Rio de Janeiro, standing 30 meters tall, not including its 8-meter pedestal. Its arms stretch 28 meters wide!"
   },
   {
     country: "Australia",
-    image: "/australia.jpg",
+    image: imgAustralia,
     artifact: "Sydney Opera House",
     explanation: "Opened in 1973, this multi-venue performing arts center is one of the 20th century's most famous and distinctive buildings, with its roof modeled after the sails of a ship."
   },
   {
     country: "China",
-    image: "/china.jpg",
+    image: imgChina,
     artifact: "The Great Wall of China",
     explanation: "The Great Wall is a series of fortifications that were built across the historical northern borders of ancient Chinese states to protect their territories. It is actually made of many overlapping walls!"
   },
   {
     country: "United States",
-    image: "/usa.jpg",
+    image: imgUsa,
     artifact: "Statue of Liberty",
     explanation: "The Statue of Liberty was a gift of friendship from the people of France to the United States and is recognized as a universal symbol of freedom and democracy."
   }
@@ -150,7 +160,7 @@ export default function GeographyGame({ onBack }) {
   return (
     <div className="geo-container view-enter">
       <div className="math-header">
-        <button className="math-small-btn" onClick={() => setActiveProfile(null)}>
+        <button className="math-small-btn btn-chunky" onClick={() => setActiveProfile(null)}>
           <ArrowLeft size={16} /> Switch Player
         </button>
         <div className="math-stats">
@@ -171,7 +181,7 @@ export default function GeographyGame({ onBack }) {
         {feedback === null && (
            <div className="geo-options">
              {options.map(opt => (
-               <button key={opt} className="geo-btn" onClick={() => handleSelection(opt)}>
+               <button key={opt} className="geo-btn btn-chunky" onClick={() => handleSelection(opt)}>
                  {opt}
                </button>
              ))}
@@ -185,14 +195,14 @@ export default function GeographyGame({ onBack }) {
               <h3>{currentArtifact.artifact}</h3>
               <p>{currentArtifact.explanation}</p>
             </div>
-            <button className="next-btn" onClick={nextQuestion}>Next Artifact</button>
+            <button className="next-btn btn-chunky" onClick={nextQuestion}>Next Artifact</button>
           </div>
         )}
 
         {feedback === 'INCORRECT' && (
            <div className="geo-feedback incorrect shake">
              <h2>Not quite! Let's examine another one together.</h2>
-             <button className="next-btn" onClick={nextQuestion} style={{marginTop: '2rem'}}>Move On</button>
+             <button className="next-btn btn-chunky" onClick={nextQuestion} style={{marginTop: '2rem'}}>Move On</button>
            </div>
         )}
 

@@ -4,8 +4,6 @@ import './MathGame.css';
 import { Trophy, Star, ArrowLeft, Play } from 'lucide-react';
 import PlayerSelect from './components/PlayerSelect';
 
-const THEMES = [null, '/bg_scifi.png', '/bg_alien.png', '/bg_cartoon.png'];
-
 export default function MathGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);
 
@@ -13,7 +11,6 @@ export default function MathGame({ onBack }) {
   const [streak, setStreak] = useState(0);
   const [question, setQuestion] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
-  const [bgTheme, setBgTheme] = useState(THEMES[0]);
   
   // Feedback state
   const [feedback, setFeedback] = useState(null); // 'CORRECT', 'INCORRECT', null
@@ -98,12 +95,7 @@ export default function MathGame({ onBack }) {
       setStreak(newStreak);
       triggerReward();
 
-      // Change background after completing a challenge
-      if (question.isChallenge) {
-        // Pick random theme from index 1,2,3
-        const newTheme = THEMES[Math.floor(Math.random() * 3) + 1];
-        setBgTheme(newTheme);
-      }
+      // No more background changing logic here
 
       setTimeout(() => {
         generateQuestion(newStreak);
@@ -136,17 +128,8 @@ export default function MathGame({ onBack }) {
     return <PlayerSelect onSelectProfile={setActiveProfile} onBack={onBack} />;
   }
 
-  const containerStyle = bgTheme ? {
-    backgroundImage: `url(${bgTheme})`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundRepeat: 'no-repeat',
-    borderRadius: '30px',
-    boxShadow: 'inset 0 0 100px rgba(0,0,0,0.8)'
-  } : {};
-
   return (
-    <div className="math-container view-enter" style={containerStyle}>
+    <div className="math-container view-enter">
       <div className="math-header">
         <button className="math-small-btn" onClick={() => setActiveProfile(null)}>
           <ArrowLeft size={16} /> Switch Player
