@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle } from 'lucide-react';
+import MathGame from './MathGame';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('HOME');
@@ -46,7 +47,7 @@ export default function App() {
 
   const renderGames = () => (
     <div className="card-grid view-enter">
-      <div className="glass-card card-math">
+      <div className="glass-card card-math" onClick={() => setCurrentView('MATH_GAME')}>
         <div className="icon-wrapper">
           <Calculator size={40} strokeWidth={1.5} />
         </div>
@@ -76,6 +77,10 @@ export default function App() {
     title = 'Games';
     subtitle = 'Fun activities for the family';
     content = renderGames();
+  }
+
+  if (currentView === 'MATH_GAME') {
+    return <MathGame onBack={() => setCurrentView('HOME')} />;
   }
 
   return (
