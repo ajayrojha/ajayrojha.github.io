@@ -3,53 +3,54 @@ import confetti from 'canvas-confetti';
 import './GeographyGame.css';
 import { Trophy, ArrowLeft, Earth } from 'lucide-react';
 import PlayerSelect from './components/PlayerSelect';
+import { ImageStore } from './assets/ImageStore';
 
 const DATA = [
   {
     country: "France",
-    image: "/france.jpg",
+    image: ImageStore.france_jpg,
     artifact: "Eiffel Tower",
     explanation: "The Eiffel Tower was built in Paris in 1889! It was originally criticized by some of France's leading artists and intellectuals for its design, but it has become a global cultural icon of France."
   },
   {
     country: "Egypt",
-    image: "/egypt.jpg",
+    image: ImageStore.egypt_jpg,
     artifact: "The Great Pyramids of Giza",
     explanation: "These ancient pyramids were built as tombs for the country's pharaohs over 4,500 years ago during the Old Kingdom period. The Great Pyramid is the oldest of the Seven Wonders of the Ancient World!"
   },
   {
     country: "Japan",
-    image: "/japan.jpg",
+    image: ImageStore.japan_jpg,
     artifact: "Mount Fuji",
     explanation: "Mount Fuji is an active stratovolcano and the highest mountain in Japan, standing 3,776 meters tall. It's considered one of Japan's three sacred mountains and has inspired artists for centuries."
   },
   {
     country: "India",
-    image: "/india.jpg",
+    image: ImageStore.india_jpg,
     artifact: "Taj Mahal",
     explanation: "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra. It was commissioned in 1632 by the Mughal emperor Shah Jahan to house the tomb of his favorite wife, Mumtaz Mahal."
   },
   {
     country: "Brazil",
-    image: "/brazil.jpg",
+    image: ImageStore.brazil_jpg,
     artifact: "Christ the Redeemer",
     explanation: "This colossal Art Deco statue of Jesus Christ is located in Rio de Janeiro, standing 30 meters tall, not including its 8-meter pedestal. Its arms stretch 28 meters wide!"
   },
   {
     country: "Australia",
-    image: "/australia.jpg",
+    image: ImageStore.australia_jpg,
     artifact: "Sydney Opera House",
     explanation: "Opened in 1973, this multi-venue performing arts center is one of the 20th century's most famous and distinctive buildings, with its roof modeled after the sails of a ship."
   },
   {
     country: "China",
-    image: "/china.jpg",
+    image: ImageStore.china_jpg,
     artifact: "The Great Wall of China",
     explanation: "The Great Wall is a series of fortifications that were built across the historical northern borders of ancient Chinese states to protect their territories. It is actually made of many overlapping walls!"
   },
   {
     country: "United States",
-    image: "/usa.jpg",
+    image: ImageStore.usa_jpg,
     artifact: "Statue of Liberty",
     explanation: "The Statue of Liberty was a gift of friendship from the people of France to the United States and is recognized as a universal symbol of freedom and democracy."
   }
