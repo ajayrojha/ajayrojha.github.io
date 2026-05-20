@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle } from 'lucide-react';
+import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle, Earth } from 'lucide-react';
 import MathGame from './MathGame';
+import ShapeGame from './ShapeGame';
+import GeographyGame from './GeographyGame';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('HOME');
@@ -55,12 +57,20 @@ export default function App() {
         <p>For the 7-year old! Solve fun math puzzles in space.</p>
       </div>
 
-      <div className="glass-card card-puzzle">
+      <div className="glass-card card-puzzle" onClick={() => setCurrentView('SHAPE_GAME')}>
         <div className="icon-wrapper">
           <Puzzle size={40} strokeWidth={1.5} />
         </div>
         <h2>Shape Sorter</h2>
         <p>For the 4-year old! Play and learn with colors and shapes.</p>
+      </div>
+
+      <div className="glass-card card-apps" onClick={() => setCurrentView('GEO_GAME')}>
+        <div className="icon-wrapper">
+          <Earth size={40} strokeWidth={1.5} />
+        </div>
+        <h2>Countries & Continents</h2>
+        <p>Explore the world, learn about artifacts, maps, and cultures!</p>
       </div>
     </div>
   );
@@ -81,6 +91,12 @@ export default function App() {
 
   if (currentView === 'MATH_GAME') {
     return <MathGame onBack={() => setCurrentView('HOME')} />;
+  }
+  if (currentView === 'SHAPE_GAME') {
+    return <ShapeGame onBack={() => setCurrentView('HOME')} />;
+  }
+  if (currentView === 'GEO_GAME') {
+    return <GeographyGame onBack={() => setCurrentView('HOME')} />;
   }
 
   return (
