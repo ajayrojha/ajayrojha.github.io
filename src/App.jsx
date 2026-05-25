@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle, Earth } from 'lucide-react';
+import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle, Earth, Sparkles, Zap } from 'lucide-react';
 import MathGame from './MathGame';
 import ShapeGame from './ShapeGame';
 import GeographyGame from './GeographyGame';
+import PuzzleGame from './PuzzleGame';
+import BlockStackGame from './BlockStackGame';
 
 export default function App() {
   const [currentView, setCurrentView] = useState('HOME');
@@ -55,6 +57,7 @@ export default function App() {
         </div>
         <h2>Math Adventures</h2>
         <p>For the 7-year old! Solve fun math puzzles in space.</p>
+        <span className="game-age-badge math-badge">Age 7+</span>
       </div>
 
       <div className="glass-card card-puzzle" onClick={() => setCurrentView('SHAPE_GAME')}>
@@ -62,18 +65,55 @@ export default function App() {
           <Puzzle size={40} strokeWidth={1.5} />
         </div>
         <h2>Shape Sorter</h2>
-        <p>For the 4-year old! Play and learn with colors and shapes.</p>
+        <p>Play and learn with colors, shapes, and patterns!</p>
+        <span className="game-age-badge shape-badge">Age 4+</span>
       </div>
 
       <div className="glass-card card-apps" onClick={() => setCurrentView('GEO_GAME')}>
         <div className="icon-wrapper">
           <Earth size={40} strokeWidth={1.5} />
         </div>
-        <h2>Countries & Continents</h2>
+        <h2>Countries &amp; Continents</h2>
         <p>Explore the world, learn about artifacts, maps, and cultures!</p>
+        <span className="game-age-badge geo-badge">Age 8+</span>
+      </div>
+
+      <div className="glass-card card-puzzle-mania" onClick={() => setCurrentView('PUZZLE_GAME')}>
+        <div className="icon-wrapper">
+          <Sparkles size={40} strokeWidth={1.5} />
+        </div>
+        <h2>Puzzle Mania</h2>
+        <p>Drag &amp; drop fun! Match animals and fruits in magical jigsaw puzzles.</p>
+        <span className="game-age-badge puzzle-badge">Age 4–5</span>
+      </div>
+
+      <div className="glass-card card-stacker" onClick={() => setCurrentView('STACK_GAME')}>
+        <div className="icon-wrapper">
+          <Zap size={40} strokeWidth={1.5} />
+        </div>
+        <h2>Block Stacker</h2>
+        <p>Neon arcade action! Stack glowing blocks and climb the leaderboard.</p>
+        <span className="game-age-badge stack-badge">Age 12+</span>
       </div>
     </div>
   );
+
+  // Full-screen game routing (no shell header needed)
+  if (currentView === 'MATH_GAME') {
+    return <MathGame onBack={() => setCurrentView('GAMES')} />;
+  }
+  if (currentView === 'SHAPE_GAME') {
+    return <ShapeGame onBack={() => setCurrentView('GAMES')} />;
+  }
+  if (currentView === 'GEO_GAME') {
+    return <GeographyGame onBack={() => setCurrentView('GAMES')} />;
+  }
+  if (currentView === 'PUZZLE_GAME') {
+    return <PuzzleGame onBack={() => setCurrentView('GAMES')} />;
+  }
+  if (currentView === 'STACK_GAME') {
+    return <BlockStackGame onBack={() => setCurrentView('GAMES')} />;
+  }
 
   let title = 'Welcome Hub';
   let subtitle = 'Select a category to get started';
@@ -85,18 +125,8 @@ export default function App() {
     content = renderApps();
   } else if (currentView === 'GAMES') {
     title = 'Games';
-    subtitle = 'Fun activities for the family';
+    subtitle = 'Fun activities for every age in the family';
     content = renderGames();
-  }
-
-  if (currentView === 'MATH_GAME') {
-    return <MathGame onBack={() => setCurrentView('HOME')} />;
-  }
-  if (currentView === 'SHAPE_GAME') {
-    return <ShapeGame onBack={() => setCurrentView('HOME')} />;
-  }
-  if (currentView === 'GEO_GAME') {
-    return <GeographyGame onBack={() => setCurrentView('HOME')} />;
   }
 
   return (

@@ -7,6 +7,19 @@ import { ImageStore } from './assets/ImageStore';
 
 const THEMES = [null, ImageStore.bg_scifi_png, ImageStore.bg_alien_png, ImageStore.bg_cartoon_png];
 
+const calculateLeft = (expr) => {
+  if (typeof expr === 'number') return expr;
+  const parts = String(expr).split(' ');
+  if (parts.length < 3) return parseInt(expr) || 0;
+  const a = parseInt(parts[0]);
+  const op = parts[1];
+  const b = parseInt(parts[2]);
+  if (op === '+') return a + b;
+  if (op === '-') return a - b;
+  if (op === 'x') return a * b;
+  return a;
+};
+
 export default function MathGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);
 
@@ -53,45 +66,141 @@ export default function MathGame({ onBack }) {
 
   const generateQuestion = (currentStreak) => {
     const isChallenge = currentStreak > 0 && currentStreak % 3 === 0;
-    let num1, num2, operator, answer;
-
-    if (isChallenge) {
-      if (Math.random() > 0.5) {
-        num1 = Math.floor(Math.random() * 5) + 1; 
-        num2 = Math.floor(Math.random() * 5) + 1; 
-        operator = 'x';
-        answer = num1 * num2;
-      } else {
-        num1 = Math.floor(Math.random() * 15) + 10; 
-        num2 = Math.floor(Math.random() * 10) + 1;  
-        operator = '+';
-        answer = num1 + num2;
-      }
+    const rand = Math.random();
+    let type = 'arithmetic'; // default
+    
+    if (currentStreak >= 2) {
+      if (rand < 0.25) type = 'comparison';
+      else if (rand < 0.45) type = 'multiplication';
+      else if (rand < 0.55) type = 'division';
+      else if (rand < 0.8) type = 'word_problem';
     } else {
-      operator = Math.random() > 0.5 ? '+' : '-';
-      if (operator === '+') {
-        num1 = Math.floor(Math.random() * 10) + 1;
-        num2 = Math.floor(Math.random() * 10) + 1;
-        answer = num1 + num2;
+      if (rand < 0.25) type = 'word_problem';
+    }
+
+    let num1, num2, operator, answer, text = '';
+    
+    if (isChallenge) {
+      const challengeRand = Math.random();
+      if (challengeRand < 0.4) {
+        // Harder arithmetic: 2-digit with carry
+        operator = Math.random() > 0.5 ? '+' : '-';
+        if (operator === '+') {
+          num1 = Math.floor(Math.random() * 50) + 20; // 20-69
+          num2 = Math.floor(Math.random() * 40) + 15; // 15-54
+          answer = num1 + num2;
+        } else {
+          num1 = Math.floor(Math.random() * 60) + 40; // 40-99
+          num2 = Math.floor(Math.random() * 35) + 10; // 10-44
+          answer = num1 - num2;
+        }
+        type = 'arithmetic';
+      } else if (challengeRand < 0.7) {
+        type = 'comparison';
       } else {
-        num1 = Math.floor(Math.random() * 10) + 5; 
-        num2 = Math.floor(Math.random() * (num1 - 1)) + 1; 
-        answer = num1 - num2;
+        type = 'word_problem';
       }
     }
 
-    setQuestion({ num1, num2, operator, answer, isChallenge });
+    if (type === 'arithmetic') {
+      operator = Math.random() > 0.5 ? '+' : '-';
+      if (operator === '+') {
+        num1 = Math.floor(Math.random() * 40) + 10; // 10-49
+        num2 = Math.floor(Math.random() * 40) + 10; // 10-49
+        answer = num1 + num2;
+      } else {
+        num1 = Math.floor(Math.random() * 50) + 30; // 30-79
+        num2 = Math.floor(Math.random() * 25) + 5;  // 5-29
+        answer = num1 - num2;
+      }
+    } else if (type === 'multiplication') {
+      operator = 'x';
+      num1 = Math.floor(Math.random() * 4) + 2; // 2-5
+      num2 = Math.floor(Math.random() * 8) + 1; // 1-8
+      answer = num1 * num2;
+    } else if (type === 'division') {
+      operator = '÷';
+      const quotient = Math.floor(Math.random() * 6) + 1; // 1-6
+      num2 = Math.floor(Math.random() * 4) + 2; // divisor: 2-5
+      num1 = quotient * num2; // dividend
+      answer = quotient;
+    } else if (type === 'word_problem') {
+      const problemType = Math.floor(Math.random() * 3);
+      if (problemType === 0) {
+        num1 = Math.floor(Math.random() * 25) + 10;
+        num2 = Math.floor(Math.random() * 15) + 5;
+        const items = ['marbles', 'balloons', 'stickers', 'apples', 'shells'][Math.floor(Math.random() * 5)];
+        const names = ['Liam', 'Emma', 'Noah', 'Olivia', 'Lucas'][Math.floor(Math.random() * 5)];
+        text = `${names} has ${num1} ${items} and gets ${num2} more. How many ${items} in total?`;
+        operator = '+';
+        answer = num1 + num2;
+      } else if (problemType === 1) {
+        num1 = Math.floor(Math.random() * 30) + 20;
+        num2 = Math.floor(Math.random() * 15) + 5;
+        const items = ['cupcakes', 'crayons', 'toy cars', 'strawberries'][Math.floor(Math.random() * 4)];
+        const names = ['Mia', 'Ethan', 'Sophia', 'Mason'][Math.floor(Math.random() * 4)];
+        text = `${names} has ${num1} ${items} and gives away ${num2} of them. How many are left?`;
+        operator = '-';
+        answer = num1 - num2;
+      } else {
+        num1 = Math.floor(Math.random() * 3) + 2; // 2-4 groups
+        num2 = Math.floor(Math.random() * 5) + 2; // 2-6 per group
+        const groupName = ['boxes', 'bags', 'baskets', 'shelves'][Math.floor(Math.random() * 4)];
+        const itemName = ['toys', 'cookies', 'books', 'oranges'][Math.floor(Math.random() * 4)];
+        text = `There are ${num1} ${groupName}. Each ${groupName.slice(0, -1)} has ${num2} ${itemName}. How many ${itemName} are there in all?`;
+        operator = 'x';
+        answer = num1 * num2;
+      }
+    } else if (type === 'comparison') {
+      operator = '?';
+      const format = Math.random();
+      if (format < 0.4) {
+        const op = Math.random() > 0.5 ? '+' : '-';
+        if (op === '+') {
+          const a = Math.floor(Math.random() * 20) + 10;
+          const b = Math.floor(Math.random() * 15) + 5;
+          num1 = `${a} + ${b}`;
+          const sum = a + b;
+          const offset = Math.floor(Math.random() * 5) - 2;
+          num2 = sum + offset;
+          answer = sum > num2 ? '>' : (sum < num2 ? '<' : '=');
+        } else {
+          const a = Math.floor(Math.random() * 30) + 20;
+          const b = Math.floor(Math.random() * 15) + 5;
+          num1 = `${a} - ${b}`;
+          const diff = a - b;
+          const offset = Math.floor(Math.random() * 5) - 2;
+          num2 = diff + offset;
+          answer = diff > num2 ? '>' : (diff < num2 ? '<' : '=');
+        }
+      } else if (format < 0.7) {
+        const a = Math.floor(Math.random() * 4) + 2;
+        const b = Math.floor(Math.random() * 6) + 1;
+        num1 = `${a} x ${b}`;
+        const prod = a * b;
+        const offset = Math.floor(Math.random() * 4) - 2;
+        num2 = prod + offset;
+        answer = prod > num2 ? '>' : (prod < num2 ? '<' : '=');
+      } else {
+        const a = Math.floor(Math.random() * 80) + 10;
+        const offset = Math.floor(Math.random() * 20) - 10;
+        num1 = a;
+        num2 = a + offset;
+        answer = a > num2 ? '>' : (a < num2 ? '<' : '=');
+      }
+    }
+
+    setQuestion({ type, num1, num2, operator, answer, text, isChallenge });
     setUserAnswer('');
     setFeedback(null);
     if (inputRef.current) inputRef.current.focus();
   };
 
-  const handleAnswerSubmit = (e) => {
-    e.preventDefault();
-    if (!userAnswer || feedback) return;
+  const handleComparisonAnswer = (op) => {
+    if (feedback) return;
 
-    if (parseInt(userAnswer) === question.answer) {
-      // CORRECT
+    setUserAnswer(op);
+    if (op === question.answer) {
       setFeedback('CORRECT');
       updateGlobalScore(question.isChallenge ? 20 : 10);
       
@@ -99,9 +208,7 @@ export default function MathGame({ onBack }) {
       setStreak(newStreak);
       triggerReward();
 
-      // Change background after completing a challenge
       if (question.isChallenge) {
-        // Pick random theme from index 1,2,3
         const newTheme = THEMES[Math.floor(Math.random() * 3) + 1];
         setBgTheme(newTheme);
       }
@@ -110,17 +217,49 @@ export default function MathGame({ onBack }) {
         generateQuestion(newStreak);
       }, 2500);
     } else {
-      // INCORRECT
+      setFeedback('INCORRECT');
+      setStreak(0);
+      
+      const leftVal = calculateLeft(question.num1);
+      const signText = question.answer === '>' ? 'greater than' : (question.answer === '<' ? 'less than' : 'equal to');
+      const expText = `Let's check: ${question.num1} equals ${leftVal}. Since ${leftVal} is ${signText} ${question.num2}, the correct sign is ${question.answer}.`;
+      setExplanation(expText);
+    }
+  };
+
+  const handleAnswerSubmit = (e) => {
+    e.preventDefault();
+    if (!userAnswer || feedback) return;
+
+    if (parseInt(userAnswer) === question.answer) {
+      setFeedback('CORRECT');
+      updateGlobalScore(question.isChallenge ? 20 : 10);
+      
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      triggerReward();
+
+      if (question.isChallenge) {
+        const newTheme = THEMES[Math.floor(Math.random() * 3) + 1];
+        setBgTheme(newTheme);
+      }
+
+      setTimeout(() => {
+        generateQuestion(newStreak);
+      }, 2500);
+    } else {
       setFeedback('INCORRECT');
       setStreak(0);
       
       let expText = '';
       if (question.operator === '+') {
-        expText = `Oops! If you have ${question.num1} blocks and add ${question.num2} more, you count up to get ${question.answer}.`;
+        expText = `Oops! If you have ${question.num1} and add ${question.num2} more, you get ${question.answer}.`;
       } else if (question.operator === '-') {
         expText = `Not quite! If you have ${question.num1} and take away ${question.num2}, you have ${question.answer} left.`;
       } else if (question.operator === 'x') {
-        expText = `Oops! ${question.num1} groups of ${question.num2} actually equals ${question.answer}.`;
+        expText = `Oops! ${question.num1} groups of ${question.num2} equals ${question.answer}.`;
+      } else if (question.operator === '÷') {
+        expText = `Oops! If you share ${question.num1} items into ${question.num2} equal groups, each group gets ${question.answer}.`;
       }
       setExplanation(expText);
     }
@@ -167,28 +306,56 @@ export default function MathGame({ onBack }) {
 
         {feedback === null && (
           <form className="question-form" onSubmit={handleAnswerSubmit}>
-            <div className="question-display">
-              <span className="number">{question?.num1}</span>
-              <span className="operator">{question?.operator}</span>
-              <span className="number">{question?.num2}</span>
-              <span className="equals">=</span>
-              <input 
-                ref={inputRef}
-                type="number" 
-                className="answer-input"
-                value={userAnswer}
-                onChange={e => setUserAnswer(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <button type="submit" className="submit-btn" disabled={!userAnswer}>Go! <Play size={24} fill="currentColor" /></button>
+            {question?.type === 'word_problem' && (
+              <div className="word-problem-box slide-down">
+                <p>{question.text}</p>
+              </div>
+            )}
+
+            {question?.type === 'comparison' ? (
+              <div className="comparison-zone">
+                <div className="question-display comparison">
+                  <span className="number">{question?.num1}</span>
+                  <span className="operator font-neon-orange">?</span>
+                  <span className="number">{question?.num2}</span>
+                </div>
+                <p className="comp-instructions">Select the correct symbol to compare:</p>
+                <div className="comp-btn-zone">
+                  <button type="button" className="comp-btn btn-less" onClick={() => handleComparisonAnswer('<')}>&lt;</button>
+                  <button type="button" className="comp-btn btn-equal" onClick={() => handleComparisonAnswer('=')}>=</button>
+                  <button type="button" className="comp-btn btn-greater" onClick={() => handleComparisonAnswer('>')}>&gt;</button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="question-display">
+                  <span className="number">{question?.num1}</span>
+                  <span className="operator">{question?.operator}</span>
+                  <span className="number">{question?.num2}</span>
+                  <span className="equals">=</span>
+                  <input 
+                    ref={inputRef}
+                    type="number" 
+                    className="answer-input"
+                    value={userAnswer}
+                    onChange={e => setUserAnswer(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                <button type="submit" className="submit-btn" disabled={!userAnswer}>Go! <Play size={24} fill="currentColor" /></button>
+              </>
+            )}
           </form>
         )}
 
         {feedback === 'CORRECT' && (
           <div className="feedback-correct bounce-in">
             <h1>🎉 YAY! AWESOME JOB! 🎉</h1>
-            <p className="big-answer">{question.num1} {question.operator} {question.num2} = {question.answer}</p>
+            {question.type === 'comparison' ? (
+              <p className="big-answer">{question.num1} <span className="font-neon-green">{question.answer}</span> {question.num2}</p>
+            ) : (
+              <p className="big-answer">{question.num1} {question.operator} {question.num2} = {question.answer}</p>
+            )}
           </div>
         )}
 
@@ -197,12 +364,14 @@ export default function MathGame({ onBack }) {
             <h1>Whoops! Let's try again.</h1>
             <div className="explanation-box">
               <p>{explanation}</p>
-              <div className="math-visual">
-                 {Array.from({ length: Math.min(question.answer, 20) }).map((_, i) => (
-                    <span key={i} className="visual-block"></span>
-                 ))}
-                 {question.answer > 20 && <span>... (+ {question.answer - 20} more)</span>}
-              </div>
+              {typeof question.answer === 'number' && (
+                <div className="math-visual">
+                   {Array.from({ length: Math.min(question.answer, 20) }).map((_, i) => (
+                      <span key={i} className="visual-block"></span>
+                   ))}
+                   {question.answer > 20 && <span>... (+ {question.answer - 20} more)</span>}
+                </div>
+              )}
             </div>
             <button className="next-btn" onClick={() => generateQuestion(0)} autoFocus>Try Next Question</button>
           </div>

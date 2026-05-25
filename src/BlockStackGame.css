@@ -1,0 +1,356 @@
+/* Neon Block Stack - Tetris Game Styles */
+.stack-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Outfit', sans-serif;
+  color: #f8fafc;
+}
+
+.stack-board-layout {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  max-width: 650px;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .stack-board-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+  .stack-sidebar {
+    width: 100% !important;
+    max-width: 320px;
+  }
+}
+
+/* Glass & Neon Canvas Panel */
+.stack-main-canvas {
+  position: relative;
+  background: rgba(10, 15, 30, 0.85);
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 0 35px rgba(59, 130, 246, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.neon-blue-glow {
+  border-color: rgba(6, 182, 212, 0.4);
+  box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+}
+
+.matrix-canvas {
+  display: block;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.8) 0%, rgba(8, 12, 24, 0.95) 100%);
+}
+
+/* Overlays (Start & Game Over) */
+.start-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(8, 12, 24, 0.92);
+  backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+  z-index: 10;
+}
+
+.start-overlay h2 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  margin: 1.2rem 0 0.5rem 0;
+}
+
+.text-yellow-glow {
+  color: #eab308;
+  filter: drop-shadow(0 0 15px rgba(234, 179, 8, 0.6));
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.text-red-glow {
+  color: #ef4444;
+  text-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+  animation: pulseGlow 1.5s infinite ease-in-out;
+}
+
+.start-overlay p {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  max-width: 220px;
+  font-weight: 500;
+}
+
+/* Neon Arcade Buttons */
+.stack-btn {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6);
+  color: white;
+  border: none;
+  padding: 0.9rem 1.8rem;
+  border-radius: 30px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  font-family: inherit;
+  letter-spacing: 0.5px;
+}
+
+.stack-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(6, 182, 212, 0.6);
+  filter: brightness(1.1);
+}
+
+.stack-btn:active {
+  transform: translateY(-1px);
+}
+
+/* Sidebar styling */
+.stack-sidebar {
+  width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stack-card {
+  border-radius: 18px;
+  padding: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: #94a3b8;
+  letter-spacing: 1.5px;
+  margin-bottom: 0.8rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.preview-canvas {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  align-self: center;
+  display: block;
+}
+
+/* Arcade Stats Panel */
+.arcade-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.arcade-stat-row:last-child {
+  border-bottom: none;
+}
+
+.arcade-stat-row span:first-child {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.5px;
+}
+
+.arcade-stat-val {
+  font-size: 1.1rem;
+  font-weight: 900;
+  font-family: monospace;
+}
+
+.text-yellow-400 {
+  color: #facc15;
+  text-shadow: 0 0 10px rgba(250, 204, 21, 0.3);
+}
+
+.text-cyan-400 {
+  color: #22d3ee;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+}
+
+.text-emerald-400 {
+  color: #34d399;
+  text-shadow: 0 0 10px rgba(52, 211, 153, 0.3);
+}
+
+/* Local Leaderboard */
+.leader-board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.leader-row {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.leader-num {
+  font-weight: 800;
+  color: #38bdf8;
+  margin-right: 0.6rem;
+  width: 20px;
+}
+
+.leader-name {
+  font-weight: 700;
+  color: #e2e8f0;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leader-score {
+  font-family: monospace;
+  font-weight: 800;
+  color: #facc15;
+}
+
+/* Touch Controls Pane (Optimized for iPad!) */
+.touch-controls-pane {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 30px;
+  backdrop-filter: blur(15px);
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.touch-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #cbd5e1;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.touch-btn:active {
+  transform: scale(0.92);
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #60a5fa;
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.hard-drop-btn {
+  border-radius: 18px;
+  width: auto;
+  flex-grow: 1;
+  height: 56px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.3);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.1);
+  padding: 0 1rem;
+}
+
+.hard-drop-btn:hover {
+  border-color: #eab308;
+  color: white;
+  background: rgba(234, 179, 8, 0.1);
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+}
+
+.hard-drop-btn:active {
+  background: rgba(234, 179, 8, 0.25);
+  border-color: #facc15;
+  color: white;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+.view-enter {
+  animation: viewEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes viewEnter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.bounce-in {
+  animation: bounceIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes bounceIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
