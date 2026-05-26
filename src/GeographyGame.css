@@ -118,8 +118,8 @@
 
 .radar-ping-tag {
   position: absolute;
-  bottom: 15px;
-  right: 15px;
+  top: 15px;
+  left: 15px;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -133,7 +133,19 @@
   letter-spacing: 1.5px;
   user-select: none;
   font-family: monospace;
+  z-index: 5;
 }
+
+@media (max-width: 480px) {
+  .radar-ping-tag {
+    top: 8px;
+    left: 8px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+  }
+}
+
 
 /* Multiple choice layout */
 .geo-options {

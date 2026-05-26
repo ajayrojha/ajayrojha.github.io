@@ -5,154 +5,166 @@ import { Trophy, ArrowLeft, Heart, Sparkles, Smile, RefreshCw } from 'lucide-rea
 import PlayerSelect from './components/PlayerSelect';
 
 // Puzzle Themes & SVG Assets
-const PUZZLE_LEVELS = [
-  // --- Animals Category ---
-  {
-    id: 'panda',
-    category: 'animals',
-    name: 'Happy Panda',
-    color: '#34d399',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        <circle cx="35" cy="35" r="14" fill="#1e293b" />
-        <circle cx="65" cy="35" r="14" fill="#1e293b" />
-        <circle cx="50" cy="55" r="32" fill="#ffffff" stroke="#e2e8f0" strokeWidth="2" />
-        <ellipse cx="38" cy="50" rx="10" ry="7" fill="#1e293b" transform="rotate(-15 38 50)" />
-        <ellipse cx="62" cy="50" rx="10" ry="7" fill="#1e293b" transform="rotate(15 62 50)" />
-        <circle cx="38" cy="50" r="3" fill="#ffffff" />
-        <circle cx="62" cy="50" r="3" fill="#ffffff" />
-        <polygon points="46,60 54,60 50,65" fill="#1e293b" />
-        <path d="M45,70 C48,73 52,73 55,70" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
-    )
-  },
-  {
-    id: 'fox',
-    category: 'animals',
-    name: 'Sleeping Fox',
-    color: '#fb923c',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        {/* Tail */}
-        <path d="M70,65 C85,60 90,45 80,35 C70,45 65,55 70,65 Z" fill="#ea580c" />
-        <path d="M80,35 C83,38 81,42 77,45 Z" fill="#ffffff" />
-        {/* Body */}
-        <circle cx="50" cy="55" r="25" fill="#ea580c" />
-        <ellipse cx="50" cy="62" rx="20" ry="12" fill="#ffffff" />
-        {/* Head */}
-        <polygon points="50,42 30,18 70,18" fill="#ea580c" />
-        <polygon points="50,42 38,28 62,28" fill="#ffffff" />
-        {/* Ears */}
-        <polygon points="32,20 22,2 40,12" fill="#ea580c" />
-        <polygon points="68,20 78,2 60,12" fill="#ea580c" />
-        {/* Sleeping Eyes */}
-        <path d="M38,28 C40,31 44,31 46,28" stroke="#1e293b" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <path d="M54,28 C56,31 60,31 62,28" stroke="#1e293b" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-        <circle cx="50" cy="35" r="3" fill="#1e293b" />
-      </svg>
-    )
-  },
-  {
-    id: 'lion',
-    category: 'animals',
-    name: 'Friendly Lion',
-    color: '#facc15',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        {/* Mane */}
-        <circle cx="50" cy="50" r="42" fill="#ea580c" />
-        {/* Ears */}
-        <circle cx="28" cy="28" r="10" fill="#f59e0b" />
-        <circle cx="72" cy="28" r="10" fill="#f59e0b" />
-        {/* Face */}
-        <circle cx="50" cy="52" r="30" fill="#facc15" />
-        <ellipse cx="50" cy="62" rx="12" ry="8" fill="#fef08a" />
-        <polygon points="46,58 54,58 50,63" fill="#7c2d12" />
-        {/* Eyes */}
-        <circle cx="40" cy="46" r="4" fill="#7c2d12" />
-        <circle cx="60" cy="46" r="4" fill="#7c2d12" />
-        <circle cx="39" cy="45" r="1.5" fill="white" />
-        <circle cx="59" cy="45" r="1.5" fill="white" />
-        {/* Mouth */}
-        <path d="M46,67 Q50,71 54,67" stroke="#7c2d12" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
-    )
-  },
-  
-  // --- Fruits Category ---
-  {
-    id: 'strawberry',
-    category: 'fruits',
-    name: 'Sweet Strawberry',
-    color: '#f87171',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        {/* Green leaves */}
-        <path d="M50,22 Q30,10 40,32 Q50,15 60,32 Q70,10 50,22" fill="#22c55e" />
-        {/* Strawberry body */}
-        <path d="M50,88 C85,70 82,30 50,30 C18,30 15,70 50,88 Z" fill="#ef4444" />
-        {/* Seeds */}
-        <circle cx="38" cy="45" r="2" fill="#fef08a" />
-        <circle cx="62" cy="45" r="2" fill="#fef08a" />
-        <circle cx="50" cy="55" r="2" fill="#fef08a" />
-        <circle cx="34" cy="65" r="2" fill="#fef08a" />
-        <circle cx="66" cy="65" r="2" fill="#fef08a" />
-        <circle cx="50" cy="75" r="2" fill="#fef08a" />
-        {/* Cute Face */}
-        <circle cx="44" cy="50" r="3.5" fill="#1e293b" />
-        <circle cx="56" cy="50" r="3.5" fill="#1e293b" />
-        <path d="M48,58 Q50,61 52,58" stroke="#1e293b" strokeWidth="2" fill="none" />
-      </svg>
-    )
-  },
-  {
-    id: 'watermelon',
-    category: 'fruits',
-    name: 'Happy Watermelon',
-    color: '#4ade80',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        {/* Rind (Green) */}
-        <path d="M10,45 C10,95 90,95 90,45 Z" fill="#15803d" />
-        <path d="M16,45 C16,88 84,88 84,45 Z" fill="#4ade80" />
-        {/* White Layer */}
-        <path d="M20,45 C20,83 80,83 80,45 Z" fill="#f8fafc" />
-        {/* Red Flesh */}
-        <path d="M24,45 C24,78 76,78 76,45 Z" fill="#f43f5e" />
-        {/* Seeds */}
-        <ellipse cx="36" cy="58" rx="2" ry="3" fill="#1e293b" />
-        <ellipse cx="64" cy="58" rx="2" ry="3" fill="#1e293b" />
-        <ellipse cx="50" cy="68" rx="2" ry="3" fill="#1e293b" />
-        {/* Face */}
-        <circle cx="44" cy="50" r="4" fill="#1e293b" />
-        <circle cx="56" cy="50" r="4" fill="#1e293b" />
-        <path d="M48,55 Q50,58 52,55" stroke="#1e293b" strokeWidth="2" fill="none" />
-      </svg>
-    )
-  },
-  {
-    id: 'pineapple',
-    category: 'fruits',
-    name: 'Cool Pineapple',
-    color: '#fbbf24',
-    svg: (
-      <svg viewBox="0 0 100 100" className="puzzle-svg">
-        {/* Leafy Crown */}
-        <path d="M50,30 Q35,5 45,20 Q50,0 55,20 Q65,5 50,30" fill="#15803d" />
-        {/* Pineapple body */}
-        <rect x="30" y="28" width="40" height="52" rx="20" fill="#fbbf24" stroke="#d97706" strokeWidth="2" />
-        {/* Cross hatches */}
-        <path d="M35,40 L65,70 M35,60 L55,80 M45,30 L65,50 M65,40 L35,70 M65,60 L45,80 M55,30 L35,50" stroke="#d97706" strokeWidth="1.5" opacity="0.6" />
-        {/* Sunglasses */}
-        <rect x="32" y="42" width="16" height="12" rx="3" fill="#0f172a" />
-        <rect x="52" y="42" width="16" height="12" rx="3" fill="#0f172a" />
-        <line x1="48" y1="45" x2="52" y2="45" stroke="#0f172a" strokeWidth="3" />
-        {/* Smile */}
-        <path d="M44,64 C48,68 52,68 56,64" stroke="#7c2d12" strokeWidth="2.5" fill="none" strokeLinecap="round" />
-      </svg>
-    )
-  }
+// 50 unique animal templates with cute emojis & vibrant colors
+const ANIMAL_TEMPLATES = [
+  { name: 'Happy Panda', emoji: '🐼', color: '#10b981' },
+  { name: 'Sleeping Fox', emoji: '🦊', color: '#fb923c' },
+  { name: 'Friendly Lion', emoji: '🦁', color: '#facc15' },
+  { name: 'Cute Koala', emoji: '🐨', color: '#94a3b8' },
+  { name: 'Little Piggy', emoji: '🐷', color: '#f472b6' },
+  { name: 'Fluffy Bunny', emoji: '🐰', color: '#fb7185' },
+  { name: 'Wise Owl', emoji: '🦉', color: '#a78bfa' },
+  { name: 'Playful Puppy', emoji: '🐶', color: '#fbbf24' },
+  { name: 'Sleepy Kitty', emoji: '🐱', color: '#f43f5e' },
+  { name: 'Happy Frog', emoji: '🐸', color: '#4ade80' },
+  { name: 'Little Monkey', emoji: '🐵', color: '#b45309' },
+  { name: 'Baby Penguin', emoji: '🐧', color: '#38bdf8' },
+  { name: 'Slow Turtle', emoji: '🐢', color: '#22c55e' },
+  { name: 'Majestic Tiger', emoji: '🐯', color: '#f97316' },
+  { name: 'Golden Chick', emoji: '🐥', color: '#eab308' },
+  { name: 'Cute Duckling', emoji: '🦆', color: '#fbbf24' },
+  { name: 'Happy Hamster', emoji: '🐹', color: '#fb923c' },
+  { name: 'Sweet Mouse', emoji: '🐭', color: '#a3a3a3' },
+  { name: 'Little Bear', emoji: '🐻', color: '#a16207' },
+  { name: 'Cool Unicorn', emoji: '🦄', color: '#ec4899' },
+  { name: 'Gentle Elephant', emoji: '🐘', color: '#64748b' },
+  { name: 'Tall Giraffe', emoji: '🦒', color: '#facc15' },
+  { name: 'Striped Zebra', emoji: '🦓', color: '#475569' },
+  { name: 'Spotted Deer', emoji: '🦌', color: '#b45309' },
+  { name: 'Fluffy Sheep', emoji: '🐑', color: '#cbd5e1' },
+  { name: 'Friendly Cow', emoji: '🐮', color: '#f1f5f9' },
+  { name: 'Happy Horse', emoji: '🐴', color: '#854d0e' },
+  { name: 'Busy Bee', emoji: '🐝', color: '#eab308' },
+  { name: 'Pretty Butterfly', emoji: '🦋', color: '#06b6d4' },
+  { name: 'Ladybug Friend', emoji: '🐞', color: '#ef4444' },
+  { name: 'Cute Snail', emoji: '🐌', color: '#fbbf24' },
+  { name: 'Friendly Shark', emoji: '🦈', color: '#3b82f6' },
+  { name: 'Little Dolphin', emoji: '🐬', color: '#67e8f9' },
+  { name: 'Starfish Buddy', emoji: '⭐', color: '#fb7185' },
+  { name: 'Cool Octopus', emoji: '🐙', color: '#f43f5e' },
+  { name: 'Tropical Fish', emoji: '🐠', color: '#f97316' },
+  { name: 'Happy Whale', emoji: '🐳', color: '#0284c7' },
+  { name: 'Fluffy Chick', emoji: '🐤', color: '#fef08a' },
+  { name: 'Wise Turtle', emoji: '🐢', color: '#16a34a' },
+  { name: 'Baby Dino', emoji: '🦕', color: '#0d9488' },
+  { name: 'Silly Llama', emoji: '🦙', color: '#cbd5e1' },
+  { name: 'Lazy Sloth', emoji: '🦥', color: '#7c2d12' },
+  { name: 'Fluffy Koala', emoji: '🐨', color: '#94a3b8' },
+  { name: 'Little Fox', emoji: '🦊', color: '#ea580c' },
+  { name: 'Baby Lion', emoji: '🦁', color: '#fbbf24' },
+  { name: 'Panda Cub', emoji: '🐼', color: '#475569' },
+  { name: 'Tiny Squirrel', emoji: '🐿️', color: '#d97706' },
+  { name: 'Wise Owl', emoji: '🦉', color: '#8b5cf6' },
+  { name: 'Green Frog', emoji: '🐸', color: '#22c55e' }
 ];
+
+// 50 unique fruit & sweet templates with tasty emojis & colors
+const FRUIT_TEMPLATES = [
+  { name: 'Sweet Strawberry', emoji: '🍓', color: '#f87171' },
+  { name: 'Happy Watermelon', emoji: '🍉', color: '#4ade80' },
+  { name: 'Cool Pineapple', emoji: '🍍', color: '#fbbf24' },
+  { name: 'Red Apple', emoji: '🍎', color: '#ef4444' },
+  { name: 'Green Apple', emoji: '🍏', color: '#22c55e' },
+  { name: 'Ripe Banana', emoji: '🍌', color: '#eab308' },
+  { name: 'Sweet Cherry', emoji: '🍒', color: '#f43f5e' },
+  { name: 'Juicy Peach', emoji: '🍑', color: '#fb923c' },
+  { name: 'Purple Grapes', emoji: '🍇', color: '#a855f7' },
+  { name: 'Tangy Lemon', emoji: '🍋', color: '#facc15' },
+  { name: 'Zesty Lime', emoji: '🥝', color: '#a7f3d0' },
+  { name: 'Fresh Orange', emoji: '🍊', color: '#f97316' },
+  { name: 'Juicy Pear', emoji: '🍐', color: '#a3e635' },
+  { name: 'Yummy Plum', emoji: '🍑', color: '#c084fc' },
+  { name: 'Fresh Kiwi', emoji: '🥝', color: '#84cc16' },
+  { name: 'Sweet Mango', emoji: '🥭', color: '#fbbf24' },
+  { name: 'Red Tomato', emoji: '🍅', color: '#ef4444' },
+  { name: 'Sweet Melon', emoji: '🍈', color: '#86efac' },
+  { name: 'Fresh Coconut', emoji: '🥥', color: '#78350f' },
+  { name: 'Tropical Papaya', emoji: '🥭', color: '#fb923c' },
+  { name: 'Sweet Blueberry', emoji: '🫐', color: '#3b82f6' },
+  { name: 'Red Raspberry', emoji: '🍓', color: '#ec4899' },
+  { name: 'Fresh Avocado', emoji: '🥑', color: '#10b981' },
+  { name: 'Bell Pepper', emoji: '🫑', color: '#22c55e' },
+  { name: 'Sweet Corn', emoji: '🌽', color: '#eab308' },
+  { name: 'Orange Carrot', emoji: '🥕', color: '#f97316' },
+  { name: 'Hot Chili', emoji: '🌶️', color: '#dc2626' },
+  { name: 'Tasty Potato', emoji: '🥔', color: '#a16207' },
+  { name: 'Golden Honey', emoji: '🍯', color: '#fbbf24' },
+  { name: 'Magic Mushroom', emoji: '🍄', color: '#ef4444' },
+  { name: 'Crunchy Peanut', emoji: '🥜', color: '#d97706' },
+  { name: 'Sweet Chestnut', emoji: '🌰', color: '#78350f' },
+  { name: 'Tasty Fig', emoji: '🍇', color: '#6b21a8' },
+  { name: 'Olive Green', emoji: '🫒', color: '#65a30d' },
+  { name: 'Fresh Broccoli', emoji: '🥦', color: '#15803d' },
+  { name: 'Cabbage Leaf', emoji: '🥬', color: '#22c55e' },
+  { name: 'Hot Garlic', emoji: '🧄', color: '#f1f5f9' },
+  { name: 'Sweet Onion', emoji: '🧅', color: '#c084fc' },
+  { name: 'Crunchy Cookie', emoji: '🍪', color: '#b45309' },
+  { name: 'Birthday Cake', emoji: '🍰', color: '#f472b6' },
+  { name: 'Rainbow Candy', emoji: '🍬', color: '#f43f5e' },
+  { name: 'Sweet Chocolate', emoji: '🍫', color: '#7c2d12' },
+  { name: 'Cool Ice Cream', emoji: '🍦', color: '#cbd5e1' },
+  { name: 'Donut Glaze', emoji: '🍩', color: '#db2777' },
+  { name: 'Fresh Cupcake', emoji: '🧁', color: '#ec4899' },
+  { name: 'Golden Waffle', emoji: '🧇', color: '#d97706' },
+  { name: 'Buttery Popcorn', emoji: '🍿', color: '#fbbf24' },
+  { name: 'Glass Juice', emoji: '🍹', color: '#38bdf8' },
+  { name: 'Sweet BubbleTea', emoji: '🧋', color: '#b45309' },
+  { name: 'Tasty Lollipop', emoji: '🍭', color: '#f43f5e' }
+];
+
+const buildLevels = () => {
+  const levels = [];
+
+  ANIMAL_TEMPLATES.forEach((tmpl, i) => {
+    levels.push({
+      id: `animal-${i}`,
+      category: 'animals',
+      name: tmpl.name,
+      color: tmpl.color,
+      svg: (
+        <svg viewBox="0 0 100 100" className="puzzle-svg">
+          <defs>
+            <radialGradient id={`grad-animal-${i}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={tmpl.color} stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#0a0f1d" stopOpacity="0.9" />
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill={`url(#grad-animal-${i})`} stroke={tmpl.color} strokeWidth="3" />
+          <text x="50" y="58" fontSize="46" textAnchor="middle" dominantBaseline="middle" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))">
+            {tmpl.emoji}
+          </text>
+        </svg>
+      )
+    });
+  });
+
+  FRUIT_TEMPLATES.forEach((tmpl, i) => {
+    levels.push({
+      id: `fruit-${i}`,
+      category: 'fruits',
+      name: tmpl.name,
+      color: tmpl.color,
+      svg: (
+        <svg viewBox="0 0 100 100" className="puzzle-svg">
+          <defs>
+            <radialGradient id={`grad-fruit-${i}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={tmpl.color} stopOpacity="0.45" />
+              <stop offset="100%" stopColor="#0a0f1d" stopOpacity="0.9" />
+            </radialGradient>
+          </defs>
+          <circle cx="50" cy="50" r="44" fill={`url(#grad-fruit-${i})`} stroke={tmpl.color} strokeWidth="3" />
+          <text x="50" y="58" fontSize="46" textAnchor="middle" dominantBaseline="middle" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.6))">
+            {tmpl.emoji}
+          </text>
+        </svg>
+      )
+    });
+  });
+
+  return levels;
+};
+
+const PUZZLE_LEVELS = buildLevels();;
 
 export default function PuzzleGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);

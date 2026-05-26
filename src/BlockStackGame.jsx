@@ -21,28 +21,36 @@ const ROWS = 20;
 export default function BlockStackGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);
   
-  // Calculate block size dynamically based on screen width
+  // Calculate larger responsive block size dynamically based on screen width
   const [blockSize, setBlockSize] = useState(() => {
     if (typeof window !== 'undefined') {
-      if (window.innerWidth < 450) return 18;
-      if (window.innerWidth < 768) return 22;
+      if (window.innerWidth < 450) return 22; // Bigger on phones (22px)
+      if (window.innerWidth < 768) return 26; // Bigger on iPads (26px)
     }
-    return 26;
+    return 30; // Bigger on desktops (30px)
   });
 
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 450) {
-        setBlockSize(18);
-      } else if (window.innerWidth < 768) {
         setBlockSize(22);
-      } else {
+      } else if (window.innerWidth < 768) {
         setBlockSize(26);
+      } else {
+        setBlockSize(30);
       }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Sliding Gesture & Double-Tap Prevention Tracking Refs
+  const isDragging = useRef(false);
+  const dragStartX = useRef(0);
+  const dragStartY = useRef(0);
+  const totalDragX = useRef(0);
+  const totalDragY = useRef(0);
+  const lastTouchTime = useRef(0);
 
   // Gameplay State
   const [score, setScore] = useState(0);
@@ -426,8 +434,65 @@ export default function BlockStackGame({ onBack }) {
       e.stopPropagation();
     }
     if (!isPlaying || gameOver || !currentPiece.current) return;
+    
+    // Safeguard to ignore double triggers within 150ms
+    const now = Date.now();
+    if (now - lastTouchTime.current < 150) return;
+    lastTouchTime.current = now;
+
     action();
     drawGame();
+  };
+
+  // Canvas Drag/Swipe Gesture Control handlers
+  const handlePointerDown = (e) => {
+    if (!isPlaying || gameOver || !currentPiece.current) return;
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+    dragStartY.current = e.clientY;
+    totalDragX.current = 0;
+    totalDragY.current = 0;
+  };
+
+  const handlePointerMove = (e) => {
+    if (!isDragging.current || !currentPiece.current) return;
+
+    const deltaX = e.clientX - dragStartX.current;
+    const deltaY = e.clientY - dragStartY.current;
+
+    totalDragX.current += Math.abs(deltaX);
+    totalDragY.current += Math.abs(deltaY);
+
+    // Slide left/right thresholds (dynamic based on block size)
+    const stepSizeX = Math.max(14, blockSize * 0.8);
+    const stepSizeY = Math.max(16, blockSize * 0.9);
+
+    if (Math.abs(deltaX) >= stepSizeX) {
+      const shift = deltaX > 0 ? 1 : -1;
+      if (!checkCollision(currentPiece.current, shift, 0)) {
+        currentPiece.current.x += shift;
+        drawGame();
+      }
+      dragStartX.current = e.clientX; // reset to track continuous slide
+    }
+
+    if (deltaY >= stepSizeY) {
+      // Soft drop one row
+      dropPiece();
+      drawGame();
+      dragStartY.current = e.clientY; // reset to track continuous drop
+    }
+  };
+
+  const handlePointerUp = (e) => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+
+    // If total movement is extremely small, treat it as a rotation TAP!
+    if (totalDragX.current < 8 && totalDragY.current < 8) {
+      rotatePiece();
+      drawGame();
+    }
   };
 
   // Touch and Keyboard Controls mapping
@@ -478,6 +543,10 @@ export default function BlockStackGame({ onBack }) {
               width={COLS * blockSize} 
               height={ROWS * blockSize}
               className="matrix-canvas"
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              style={{ touchAction: 'none', cursor: isPlaying ? 'pointer' : 'default' }}
             />
 
             {!isPlaying && !gameOver && (

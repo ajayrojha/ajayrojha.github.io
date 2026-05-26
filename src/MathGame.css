@@ -543,3 +543,98 @@
   color: #10b981;
   text-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
 }
+
+/* Responsive adjustments for Phone and iPad (Fixes hidden/cut off game area) */
+@media (max-width: 768px) {
+  .math-container {
+    padding: 1rem;
+  }
+  .game-board {
+    padding: 2rem 1rem 1.5rem 1rem;
+    min-height: auto;
+  }
+  .question-form {
+    padding: 1.5rem 1rem;
+    border-radius: 24px;
+    width: 100%;
+  }
+  .question-display {
+    font-size: 3rem;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+  .answer-display {
+    width: 110px;
+    height: 70px;
+    font-size: 2.5rem;
+    border-radius: 14px;
+  }
+  .word-problem-box {
+    font-size: 1.1rem;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1.2rem;
+  }
+  .math-keypad {
+    gap: 0.5rem;
+    max-width: 280px;
+    margin: 1rem auto;
+  }
+  .keypad-btn {
+    font-size: 1.4rem;
+    padding: 0.6rem;
+    border-radius: 12px;
+  }
+  .keypad-clear {
+    font-size: 1rem;
+  }
+  .keypad-backspace {
+    font-size: 1.2rem;
+  }
+  .submit-btn {
+    padding: 0.8rem 2.2rem;
+    font-size: 1.2rem;
+  }
+  .math-header {
+    margin-bottom: 1.5rem;
+  }
+  .stat-pill {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.8rem;
+  }
+  .comp-btn {
+    width: 60px;
+    height: 60px;
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .question-display {
+    font-size: 2.2rem;
+    gap: 0.5rem;
+  }
+  .answer-display {
+    width: 90px;
+    height: 60px;
+    font-size: 2rem;
+    border-radius: 10px;
+    border-width: 3px;
+  }
+  .word-problem-box {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
+  .math-keypad {
+    max-width: 250px;
+  }
+  .keypad-btn {
+    font-size: 1.2rem;
+    padding: 0.5rem;
+  }
+  .comp-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+}
+
