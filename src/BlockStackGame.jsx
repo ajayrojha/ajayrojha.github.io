@@ -17,10 +17,32 @@ const TETRIMINOS = {
 const SHAPES_KEYS = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 const COLS = 10;
 const ROWS = 20;
-const BLOCK_SIZE = 26; // px size on canvas
 
 export default function BlockStackGame({ onBack }) {
   const [activeProfile, setActiveProfile] = useState(null);
+  
+  // Calculate block size dynamically based on screen width
+  const [blockSize, setBlockSize] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 450) return 18;
+      if (window.innerWidth < 768) return 22;
+    }
+    return 26;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 450) {
+        setBlockSize(18);
+      } else if (window.innerWidth < 768) {
+        setBlockSize(22);
+      } else {
+        setBlockSize(26);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Gameplay State
   const [score, setScore] = useState(0);
@@ -278,14 +300,14 @@ export default function BlockStackGame({ onBack }) {
     ctx.lineWidth = 1;
     for (let c = 0; c <= COLS; c++) {
       ctx.beginPath();
-      ctx.moveTo(c * BLOCK_SIZE, 0);
-      ctx.lineTo(c * BLOCK_SIZE, ROWS * BLOCK_SIZE);
+      ctx.moveTo(c * blockSize, 0);
+      ctx.lineTo(c * blockSize, ROWS * blockSize);
       ctx.stroke();
     }
     for (let r = 0; r <= ROWS; r++) {
       ctx.beginPath();
-      ctx.moveTo(0, r * BLOCK_SIZE);
-      ctx.lineTo(COLS * BLOCK_SIZE, r * BLOCK_SIZE);
+      ctx.moveTo(0, r * blockSize);
+      ctx.lineTo(COLS * blockSize, r * blockSize);
       ctx.stroke();
     }
 
@@ -314,8 +336,8 @@ export default function BlockStackGame({ onBack }) {
 
   // Draw single block with glass/neon visual border glow
   const drawBlock = (ctx, x, y, color) => {
-    const posX = x * BLOCK_SIZE;
-    const posY = y * BLOCK_SIZE;
+    const posX = x * blockSize;
+    const posY = y * blockSize;
 
     // Outer glow highlight
     ctx.shadowColor = color;
@@ -324,7 +346,7 @@ export default function BlockStackGame({ onBack }) {
     
     // Draw rounded block
     ctx.beginPath();
-    ctx.roundRect(posX + 1, posY + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2, 4);
+    ctx.roundRect(posX + 1, posY + 1, blockSize - 2, blockSize - 2, 4);
     ctx.fill();
 
     // Reset shadow
@@ -334,7 +356,7 @@ export default function BlockStackGame({ onBack }) {
     // Glass sheen light reflect
     ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
     ctx.beginPath();
-    ctx.roundRect(posX + 3, posY + 3, BLOCK_SIZE - 6, 4, 1);
+    ctx.roundRect(posX + 3, posY + 3, blockSize - 6, 4, 1);
     ctx.fill();
   };
 
@@ -398,6 +420,16 @@ export default function BlockStackGame({ onBack }) {
     return () => cancelAnimationFrame(animationId);
   }, [isPlaying, gameOver]);
 
+  const handleTouchAction = (action, e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!isPlaying || gameOver || !currentPiece.current) return;
+    action();
+    drawGame();
+  };
+
   // Touch and Keyboard Controls mapping
   const handleKeyDown = (e) => {
     if (!isPlaying || gameOver) return;
@@ -438,33 +470,76 @@ export default function BlockStackGame({ onBack }) {
       </div>
 
       <div className="stack-board-layout">
-        {/* Jigsaw Canvas Game Board */}
-        <div className="stack-main-canvas glass-panel neon-blue-glow">
-          <canvas 
-            ref={canvasRef} 
-            width={COLS * BLOCK_SIZE} 
-            height={ROWS * BLOCK_SIZE}
-            className="matrix-canvas"
-          />
+        <div className="stack-game-column">
+          {/* Jigsaw Canvas Game Board */}
+          <div className="stack-main-canvas glass-panel neon-blue-glow">
+            <canvas 
+              ref={canvasRef} 
+              width={COLS * blockSize} 
+              height={ROWS * blockSize}
+              className="matrix-canvas"
+            />
 
-          {!isPlaying && !gameOver && (
-            <div className="start-overlay bounce-in">
-              <Zap size={48} className="text-yellow-glow" />
-              <h2>NEON BLOCK STACK</h2>
-              <p>Match blocks, clear rows, and conquer the glowing leaderboard matrix!</p>
-              <button className="stack-btn start-btn" onClick={startGame}>
-                <Play size={20} fill="currentColor" /> START ARCADE
+            {!isPlaying && !gameOver && (
+              <div className="start-overlay bounce-in">
+                <Zap size={48} className="text-yellow-glow" />
+                <h2>NEON BLOCK STACK</h2>
+                <p>Match blocks, clear rows, and conquer the glowing leaderboard matrix!</p>
+                <button className="stack-btn start-btn" onClick={startGame}>
+                  <Play size={20} fill="currentColor" /> START ARCADE
+                </button>
+              </div>
+            )}
+
+            {gameOver && (
+              <div className="start-overlay bounce-in">
+                <Trophy size={48} className="text-orange-500 animate-bounce" />
+                <h2 className="text-red-glow">GAME OVER</h2>
+                <p>Spectacular performance! You reached Level {level} with a score of {score}!</p>
+                <button className="stack-btn start-btn" onClick={startGame}>
+                  <Play size={20} fill="currentColor" /> PLAY AGAIN
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* On-Screen Touch Controls (Optimized for both Phone & iPad players!) */}
+          {isPlaying && !gameOver && (
+            <div className="touch-controls-pane slide-up">
+              <button 
+                className="touch-btn" 
+                onTouchStart={(e) => handleTouchAction(() => { if (!checkCollision(currentPiece.current, -1, 0)) currentPiece.current.x -= 1; }, e)}
+                onClick={(e) => handleTouchAction(() => { if (!checkCollision(currentPiece.current, -1, 0)) currentPiece.current.x -= 1; }, e)}
+              >
+                <ArrowLeftCircle size={36} />
               </button>
-            </div>
-          )}
-
-          {gameOver && (
-            <div className="start-overlay bounce-in">
-              <Trophy size={48} className="text-orange-500 animate-bounce" />
-              <h2 className="text-red-glow">GAME OVER</h2>
-              <p>Spectacular performance! You reached Level {level} with a score of {score}!</p>
-              <button className="stack-btn start-btn" onClick={startGame}>
-                <Play size={20} fill="currentColor" /> PLAY AGAIN
+              <button 
+                className="touch-btn" 
+                onTouchStart={(e) => handleTouchAction(rotatePiece, e)}
+                onClick={(e) => handleTouchAction(rotatePiece, e)}
+              >
+                <RotateCw size={36} />
+              </button>
+              <button 
+                className="touch-btn" 
+                onTouchStart={(e) => handleTouchAction(() => { if (!checkCollision(currentPiece.current, 1, 0)) currentPiece.current.x += 1; }, e)}
+                onClick={(e) => handleTouchAction(() => { if (!checkCollision(currentPiece.current, 1, 0)) currentPiece.current.x += 1; }, e)}
+              >
+                <ArrowRightCircle size={36} />
+              </button>
+              <button 
+                className="touch-btn" 
+                onTouchStart={(e) => handleTouchAction(dropPiece, e)}
+                onClick={(e) => handleTouchAction(dropPiece, e)}
+              >
+                <ArrowDownCircle size={36} />
+              </button>
+              <button 
+                className="touch-btn hard-drop-btn" 
+                onTouchStart={(e) => handleTouchAction(hardDropPiece, e)}
+                onClick={(e) => handleTouchAction(hardDropPiece, e)}
+              >
+                DROP!
               </button>
             </div>
           )}
@@ -510,39 +585,6 @@ export default function BlockStackGame({ onBack }) {
           </div>
         </div>
       </div>
-
-      {/* On-Screen Touch Controls (Optimized for iPad players!) */}
-      {isPlaying && !gameOver && (
-        <div className="touch-controls-pane slide-up">
-          <button className="touch-btn" onClick={() => {
-            if (!checkCollision(currentPiece.current, -1, 0)) currentPiece.current.x -= 1;
-            drawGame();
-          }}>
-            <ArrowLeftCircle size={36} />
-          </button>
-          <button className="touch-btn" onClick={rotatePiece}>
-            <RotateCw size={36} />
-          </button>
-          <button className="touch-btn" onClick={() => {
-            if (!checkCollision(currentPiece.current, 1, 0)) currentPiece.current.x += 1;
-            drawGame();
-          }}>
-            <ArrowRightCircle size={36} />
-          </button>
-          <button className="touch-btn" onClick={() => {
-            dropPiece();
-            drawGame();
-          }}>
-            <ArrowDownCircle size={36} />
-          </button>
-          <button className="touch-btn hard-drop-btn" onClick={() => {
-            hardDropPiece();
-            drawGame();
-          }}>
-            DROP!
-          </button>
-        </div>
-      )}
     </div>
   );
 }

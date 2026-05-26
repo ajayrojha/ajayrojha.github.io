@@ -247,6 +247,13 @@
   color: #facc15;
 }
 
+.stack-game-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
 /* Touch Controls Pane (Optimized for iPad!) */
 .touch-controls-pane {
   display: flex;
@@ -354,3 +361,26 @@
   from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
 }
+
+@media (max-width: 480px) {
+  .touch-controls-pane {
+    max-width: 320px;
+    padding: 0.5rem 0.8rem;
+    gap: 0.4rem;
+    margin-top: 1rem;
+  }
+  .touch-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .touch-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  .hard-drop-btn {
+    font-size: 0.8rem;
+    height: 44px;
+    padding: 0 0.4rem;
+  }
+}
+

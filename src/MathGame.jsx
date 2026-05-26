@@ -227,8 +227,20 @@ export default function MathGame({ onBack }) {
     }
   };
 
-  const handleAnswerSubmit = (e) => {
-    e.preventDefault();
+  const handleKeypadPress = (val) => {
+    if (feedback) return;
+    if (val === 'clear') {
+      setUserAnswer('');
+    } else if (val === 'backspace') {
+      setUserAnswer(prev => prev.slice(0, -1));
+    } else {
+      if (userAnswer.length < 4) {
+        setUserAnswer(prev => prev + val);
+      }
+    }
+  };
+
+  const submitAnswer = () => {
     if (!userAnswer || feedback) return;
 
     if (parseInt(userAnswer) === question.answer) {
@@ -264,6 +276,32 @@ export default function MathGame({ onBack }) {
       setExplanation(expText);
     }
   };
+
+  const handleAnswerSubmit = (e) => {
+    if (e) e.preventDefault();
+    submitAnswer();
+  };
+
+  // Physical Keyboard Listener
+  useEffect(() => {
+    const handlePhysicalKeyDown = (e) => {
+      if (!activeProfile || !question || question.type === 'comparison' || feedback !== null) return;
+
+      if (e.key >= '0' && e.key <= '9') {
+        handleKeypadPress(e.key);
+      } else if (e.key === 'Backspace') {
+        handleKeypadPress('backspace');
+      } else if (e.key === 'Escape') {
+        handleKeypadPress('clear');
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        submitAnswer();
+      }
+    };
+
+    window.addEventListener('keydown', handlePhysicalKeyDown);
+    return () => window.removeEventListener('keydown', handlePhysicalKeyDown);
+  }, [activeProfile, question, userAnswer, feedback]);
 
   // Run generation only when profile is actually picked
   useEffect(() => {
@@ -333,15 +371,29 @@ export default function MathGame({ onBack }) {
                   <span className="operator">{question?.operator}</span>
                   <span className="number">{question?.num2}</span>
                   <span className="equals">=</span>
-                  <input 
-                    ref={inputRef}
-                    type="number" 
-                    className="answer-input"
-                    value={userAnswer}
-                    onChange={e => setUserAnswer(e.target.value)}
-                    autoFocus
-                  />
+                  <div className="answer-display">
+                    {userAnswer || <span className="answer-placeholder">?</span>}
+                  </div>
                 </div>
+
+                <div className="math-keypad">
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('1')}>1</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('2')}>2</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('3')}>3</button>
+                  
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('4')}>4</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('5')}>5</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('6')}>6</button>
+                  
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('7')}>7</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('8')}>8</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('9')}>9</button>
+                  
+                  <button type="button" className="keypad-btn keypad-clear" onClick={() => handleKeypadPress('clear')}>Clear</button>
+                  <button type="button" className="keypad-btn" onClick={() => handleKeypadPress('0')}>0</button>
+                  <button type="button" className="keypad-btn keypad-backspace" onClick={() => handleKeypadPress('backspace')}>⌫</button>
+                </div>
+
                 <button type="submit" className="submit-btn" disabled={!userAnswer}>Go! <Play size={24} fill="currentColor" /></button>
               </>
             )}
