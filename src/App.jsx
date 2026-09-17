@@ -1,13 +1,47 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutGrid, Gamepad2, ArrowLeft, TrendingUp, Wind, Calculator, Puzzle, Earth, Sparkles, Zap } from 'lucide-react';
 import MathGame from './MathGame';
 import ShapeGame from './ShapeGame';
 import GeographyGame from './GeographyGame';
 import PuzzleGame from './PuzzleGame';
 import BlockStackGame from './BlockStackGame';
+import InterviewPrep from './InterviewPrep';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('HOME');
+  const getInitialView = () => {
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    if (hash === '#interview-prep' || hash === '#/interview-prep' || search.includes('page=interview-prep') || search.includes('view=interview-prep')) {
+      return 'INTERVIEW_PREP';
+    }
+    return 'HOME';
+  };
+
+  const [currentView, setCurrentView] = useState(getInitialView);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      if (hash === '#interview-prep' || hash === '#/interview-prep' || search.includes('page=interview-prep') || search.includes('view=interview-prep')) {
+        setCurrentView('INTERVIEW_PREP');
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
+
+  const handleBackToHome = () => {
+    setCurrentView('HOME');
+    if (window.location.hash.toLowerCase().includes('interview-prep') || window.location.search.toLowerCase().includes('interview-prep')) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  };
 
   const renderHome = () => (
     <div className="card-grid view-enter">
@@ -98,7 +132,10 @@ export default function App() {
     </div>
   );
 
-  // Full-screen game routing (no shell header needed)
+  // Full-screen views / game routing
+  if (currentView === 'INTERVIEW_PREP') {
+    return <InterviewPrep onBack={handleBackToHome} />;
+  }
   if (currentView === 'MATH_GAME') {
     return <MathGame onBack={() => setCurrentView('GAMES')} />;
   }
