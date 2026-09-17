@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
+  BookOpen,
   Code2,
   Layers,
   MessageSquare,
@@ -13,13 +14,24 @@ import {
   Check,
   ChevronRight,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Lightbulb,
   ArrowLeft,
   RotateCw,
   Plus,
   Trash2,
   Play,
-  RotateCcw
+  RotateCcw,
+  Printer,
+  Terminal,
+  Server,
+  Database,
+  Network,
+  Cloud,
+  HardDrive,
+  Monitor,
+  Cpu
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -30,12 +42,41 @@ import {
   FLASHCARDS_DATA,
   MOCK_INTERVIEW_QUESTIONS
 } from './interviewData';
+import { CURRICULUM_DATA } from './curriculumData';
 import './InterviewPrep.css';
 
+const SECTION_ICONS = {
+  Terminal: Terminal,
+  Server: Server,
+  Database: Database,
+  Network: Network,
+  Cloud: Cloud,
+  HardDrive: HardDrive,
+  Monitor: Monitor,
+  Cpu: Cpu
+};
+
 export default function InterviewPrep({ onBack }) {
-  const [activeTab, setActiveTab] = useState('DSA');
+  const [activeTab, setActiveTab] = useState('CURRICULUM');
   const [searchQuery, setSearchQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('ALL');
+
+  // Curriculum specific state
+  const [curriculumCategory, setCurriculumCategory] = useState('ALL');
+  const [expandedQAs, setExpandedQAs] = useState(() => {
+    const initial = {};
+    // By default expand first 2 questions of each topic for great first-impression readability
+    CURRICULUM_DATA.forEach((sec) => {
+      sec.topics.forEach((top, topIdx) => {
+        top.questions.forEach((q, qIdx) => {
+          if (topIdx === 0 && qIdx < 2) {
+            initial[`${sec.id}-${top.name}-${qIdx}`] = true;
+          }
+        });
+      });
+    });
+    return initial;
+  });
 
   // Persistence State
   const [bookmarks, setBookmarks] = useState(() => {
@@ -155,17 +196,48 @@ export default function InterviewPrep({ onBack }) {
     );
   };
 
+  const toggleQA = (key) => {
+    setExpandedQAs((prev) => ({
+      ...prev,
+      [key]: !prev[key]
+    }));
+  };
+
+  const expandAllQAs = () => {
+    const allExpanded = {};
+    CURRICULUM_DATA.forEach((sec) => {
+      sec.topics.forEach((top) => {
+        top.questions.forEach((_, qIdx) => {
+          allExpanded[`${sec.id}-${top.name}-${qIdx}`] = true;
+        });
+      });
+    });
+    setExpandedQAs(allExpanded);
+  };
+
+  const collapseAllQAs = () => {
+    setExpandedQAs({});
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
+  // Count total curriculum questions
+  let totalCurriculumCount = 0;
+  CURRICULUM_DATA.forEach((s) =>
+    s.topics.forEach((t) => (totalCurriculumCount += t.questions.length))
+  );
+
   const totalQuestions =
+    totalCurriculumCount +
     DSA_PROBLEMS.length +
     SYSTEM_DESIGN_TOPICS.length +
     BEHAVIORAL_QUESTIONS.length +
     FRONTEND_CORE_TOPICS.length;
+
   const readinessPercent = Math.min(
     100,
     Math.round((mastered.length / totalQuestions) * 100) || 0
@@ -198,8 +270,6 @@ export default function InterviewPrep({ onBack }) {
     setMockTimeRemaining(MOCK_INTERVIEW_QUESTIONS[0].timeLimitSeconds);
   };
 
-
-
   // Filtered Flashcards
   const filteredFlashcards = FLASHCARDS_DATA.filter((c) =>
     flashcardCategory === 'ALL' ? true : c.category === flashcardCategory
@@ -211,6 +281,30 @@ export default function InterviewPrep({ onBack }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Filtered Curriculum Sections
+  const filteredCurriculum = CURRICULUM_DATA.filter(
+    (sec) => curriculumCategory === 'ALL' || sec.id === curriculumCategory
+  )
+    .map((sec) => {
+      if (!searchQuery.trim()) return sec;
+      const query = searchQuery.toLowerCase();
+      const filteredTopics = sec.topics
+        .map((top) => {
+          const matchedQuestions = top.questions.filter(
+            (q) =>
+              q.q.toLowerCase().includes(query) ||
+              q.a.toLowerCase().includes(query) ||
+              top.name.toLowerCase().includes(query) ||
+              sec.title.toLowerCase().includes(query)
+          );
+          return { ...top, questions: matchedQuestions };
+        })
+        .filter((top) => top.questions.length > 0);
+
+      return { ...sec, topics: filteredTopics };
+    })
+    .filter((sec) => sec.topics.length > 0);
+
   return (
     <div className="prep-container">
       {/* Top Header */}
@@ -221,7 +315,7 @@ export default function InterviewPrep({ onBack }) {
           </div>
           <div className="prep-title-group">
             <h1>Interview Prep Studio</h1>
-            <p>Software Engineering &amp; Architecture Mastery</p>
+            <p>Full-Stack, .NET, Azure, Architecture &amp; System Mastery</p>
           </div>
         </div>
 
@@ -248,6 +342,13 @@ export default function InterviewPrep({ onBack }) {
 
       {/* Tabs Navigation */}
       <nav className="prep-tabs-nav">
+        <button
+          className={`prep-tab-btn ${activeTab === 'CURRICULUM' ? 'active' : ''}`}
+          onClick={() => setActiveTab('CURRICULUM')}
+        >
+          <BookOpen size={18} />
+          Full Curriculum &amp; Study Guide
+        </button>
         <button
           className={`prep-tab-btn ${activeTab === 'DSA' ? 'active' : ''}`}
           onClick={() => setActiveTab('DSA')}
@@ -291,6 +392,162 @@ export default function InterviewPrep({ onBack }) {
           Mock Simulator
         </button>
       </nav>
+
+      {/* ============================================================
+          TAB 0: FULL INTERVIEW CURRICULUM & STUDY GUIDE
+          ============================================================ */}
+      {activeTab === 'CURRICULUM' && (
+        <div className="curriculum-container">
+          {/* Top Banner with Print & Expand Actions */}
+          <div className="curriculum-banner">
+            <div className="curriculum-banner-text">
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
+                Complete Technical Interview Syllabus
+              </h3>
+              <p>
+                Structured with clear hierarchy and spacing for optimal web study and physical printing.
+              </p>
+            </div>
+
+            <div className="curriculum-banner-actions">
+              <button className="btn-secondary" onClick={expandAllQAs} title="Expand all question cards">
+                <ChevronDown size={16} /> Expand All
+              </button>
+              <button className="btn-secondary" onClick={collapseAllQAs} title="Collapse all question cards">
+                <ChevronUp size={16} /> Collapse All
+              </button>
+              <button className="btn-primary" onClick={() => window.print()} title="Print or save as PDF">
+                <Printer size={16} /> Print / Export PDF
+              </button>
+            </div>
+          </div>
+
+          {/* Search & Category Filter */}
+          <div className="prep-toolbar">
+            <div className="prep-search-box">
+              <Search className="search-icon" size={16} />
+              <input
+                type="text"
+                placeholder="Search across all sections (e.g. LINQ, JWT, Dead-Letter Queue, Signals)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="curriculum-nav-chips">
+              <button
+                className={`filter-chip ${curriculumCategory === 'ALL' ? 'active' : ''}`}
+                onClick={() => setCurriculumCategory('ALL')}
+              >
+                All Sections ({CURRICULUM_DATA.length})
+              </button>
+              {CURRICULUM_DATA.map((sec) => (
+                <button
+                  key={sec.id}
+                  className={`filter-chip ${curriculumCategory === sec.id ? 'active' : ''}`}
+                  onClick={() => setCurriculumCategory(sec.id)}
+                >
+                  {sec.title}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Curriculum Sections List */}
+          {filteredCurriculum.map((section) => {
+            const IconComponent = SECTION_ICONS[section.icon] || BookOpen;
+
+            return (
+              <section key={section.id} className="curriculum-section-card">
+                <div className="section-card-header">
+                  <div>
+                    <h2>
+                      <IconComponent size={24} style={{ color: '#38bdf8' }} />
+                      {section.title}
+                    </h2>
+                    <p>{section.summary}</p>
+                  </div>
+                </div>
+
+                {section.topics.map((topic, topIdx) => (
+                  <div key={topIdx} className="curriculum-topic-group">
+                    <div className="topic-group-title">
+                      <span>📌 {topic.name}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {topic.questions.map((item, qIdx) => {
+                        const qaKey = `${section.id}-${topic.name}-${qIdx}`;
+                        const isExpanded = !!expandedQAs[qaKey];
+                        const isMastered = mastered.includes(qaKey);
+
+                        return (
+                          <div key={qIdx} className="qa-item">
+                            <div className="qa-item-header" onClick={() => toggleQA(qaKey)}>
+                              <div className="qa-item-title-wrap">
+                                <button
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: isMastered ? '#10b981' : '#64748b',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: 0
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleMastered(qaKey);
+                                  }}
+                                  title={isMastered ? 'Marked as Mastered' : 'Mark as Mastered'}
+                                >
+                                  <CheckCircle2 size={18} />
+                                </button>
+                                <h4>{item.q}</h4>
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <button
+                                  style={{
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: '#94a3b8',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    copyToClipboard(`${item.q}\n\n${item.a}`);
+                                  }}
+                                  title="Copy Question & Answer"
+                                >
+                                  <Copy size={14} />
+                                </button>
+                                {isExpanded ? (
+                                  <ChevronUp size={18} style={{ color: '#38bdf8' }} />
+                                ) : (
+                                  <ChevronDown size={18} style={{ color: '#64748b' }} />
+                                )}
+                              </div>
+                            </div>
+
+                            {isExpanded && (
+                              <div className="qa-item-body">
+                                <div>{item.a}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            );
+          })}
+        </div>
+      )}
 
       {/* ============================================================
           TAB 1: ALGORITHMS & DATA STRUCTURES (DSA)
