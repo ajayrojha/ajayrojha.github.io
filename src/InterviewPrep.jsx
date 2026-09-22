@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
-  DSA_PROBLEMS,
   SYSTEM_DESIGN_TOPICS,
   BEHAVIORAL_QUESTIONS,
   FRONTEND_CORE_TOPICS,
@@ -34,7 +33,9 @@ import {
   MOCK_INTERVIEW_QUESTIONS
 } from './interviewData';
 import { CURRICULUM_DATA } from './curriculumData';
+import { ALL_CODING_PROBLEMS, CODING_COMPANIES } from './codingProblems';
 import { LAST_UPDATED_ISO, LAST_UPDATED_LABEL } from './lastUpdated';
+import ThemeToggle from './ThemeToggle';
 import './InterviewPrep.css';
 
 // Renders the light markdown used in answers: **bold**, *italic*, `code`
@@ -92,6 +93,13 @@ function renderRich(text) {
   });
 }
 
+const CODE_LANGUAGES = {
+  csharp: 'C#',
+  javascript: 'JavaScript',
+  python: 'Python',
+  java: 'Java'
+};
+
 const COPY_FAILED_MESSAGE = "Couldn't copy. Your browser blocked clipboard access.";
 
 // Clipboard API with a fallback for browsers/contexts where it is unavailable
@@ -130,6 +138,7 @@ export default function InterviewPrep({ onBack }) {
   const [activeTab, setActiveTab] = useState('CURRICULUM');
   const [searchQuery, setSearchQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('ALL');
+  const [companyFilter, setCompanyFilter] = useState('ALL');
 
   // Curriculum specific state
   const [curriculumCategory, setCurriculumCategory] = useState('ALL');
@@ -162,13 +171,13 @@ export default function InterviewPrep({ onBack }) {
   });
 
   // Selected Detail States
-  const [selectedDsa, setSelectedDsa] = useState(DSA_PROBLEMS[0]);
+  const [selectedDsa, setSelectedDsa] = useState(ALL_CODING_PROBLEMS[0]);
   const [selectedSys, setSelectedSys] = useState(SYSTEM_DESIGN_TOPICS[0]);
   const [selectedBeh, setSelectedBeh] = useState(BEHAVIORAL_QUESTIONS[0]);
   const [selectedFe, setSelectedFe] = useState(FRONTEND_CORE_TOPICS[0]);
 
   // Code Viewer State
-  const [codeLang, setCodeLang] = useState('javascript');
+  const [codeLang, setCodeLang] = useState('csharp');
   const [copiedCode, setCopiedCode] = useState(false);
   const [showHints, setShowHints] = useState(false);
 
@@ -316,7 +325,7 @@ export default function InterviewPrep({ onBack }) {
 
   const totalQuestions =
     totalCurriculumCount +
-    DSA_PROBLEMS.length +
+    ALL_CODING_PROBLEMS.length +
     SYSTEM_DESIGN_TOPICS.length +
     BEHAVIORAL_QUESTIONS.length +
     FRONTEND_CORE_TOPICS.length;
@@ -352,6 +361,18 @@ export default function InterviewPrep({ onBack }) {
     setMockUserNotes('');
     setMockTimeRemaining(MOCK_INTERVIEW_QUESTIONS[0].timeLimitSeconds);
   };
+
+  // Filtered coding problems (Algorithms tab)
+  const codingQuery = searchQuery.trim().toLowerCase();
+  const filteredCodingProblems = ALL_CODING_PROBLEMS.filter(
+    (p) =>
+      (difficultyFilter === 'ALL' || p.difficulty === difficultyFilter) &&
+      (companyFilter === 'ALL' || p.companies.includes(companyFilter)) &&
+      (!codingQuery ||
+        [p.title, p.category, ...p.companies].some((text) =>
+          text.toLowerCase().includes(codingQuery)
+        ))
+  );
 
   // Filtered Flashcards
   const filteredFlashcards = FLASHCARDS_DATA.filter((c) =>
@@ -391,7 +412,7 @@ export default function InterviewPrep({ onBack }) {
     .filter((sec) => sec.topics.length > 0);
 
   return (
-    <div className="prep-container">
+    <div className="prep-container theme-scope">
       {/* Top Header */}
       <header className="prep-header">
         <div className="prep-header-top">
@@ -399,9 +420,12 @@ export default function InterviewPrep({ onBack }) {
             <ArrowLeft size={16} />
             Back to hub
           </button>
-          <p className="prep-updated">
-            Last updated <time dateTime={LAST_UPDATED_ISO}>{LAST_UPDATED_LABEL}</time>
-          </p>
+          <div className="prep-header-meta">
+            <p className="prep-updated">
+              Last updated <time dateTime={LAST_UPDATED_ISO}>{LAST_UPDATED_LABEL}</time>
+            </p>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="prep-brand">
@@ -644,6 +668,18 @@ export default function InterviewPrep({ onBack }) {
               />
             </div>
 
+            <label className="company-select">
+              <span>Asked at</span>
+              <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)}>
+                <option value="ALL">Any company</option>
+                {CODING_COMPANIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+
             <div className="prep-filters-group">
               {['ALL', 'Easy', 'Medium', 'Hard'].map((diff) => (
                 <button
@@ -651,24 +687,25 @@ export default function InterviewPrep({ onBack }) {
                   className={`filter-chip ${difficultyFilter === diff ? 'active' : ''}`}
                   onClick={() => setDifficultyFilter(diff)}
                 >
-                  {diff}
+                  {diff === 'ALL' ? 'All levels' : diff}
                 </button>
               ))}
             </div>
           </div>
 
+          <p className="coding-note">
+            {filteredCodingProblems.length} of {ALL_CODING_PROBLEMS.length} problems. Company tags
+            show where each problem is commonly reported in public interview write-ups (LeetCode
+            company tags, Glassdoor), not a guarantee it will be asked.
+          </p>
+
           <div className="prep-split-layout">
             {/* Sidebar list */}
             <div className="prep-list-card">
-              {DSA_PROBLEMS.filter(
-                (p) =>
-                  (difficultyFilter === 'ALL' || p.difficulty === difficultyFilter) &&
-                  (p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    p.companies.some((c) =>
-                      c.toLowerCase().includes(searchQuery.toLowerCase())
-                    ))
-              ).map((prob) => {
+              {filteredCodingProblems.length === 0 && (
+                <p className="cl-empty" style={{ padding: '1rem' }}>No problems match these filters.</p>
+              )}
+              {filteredCodingProblems.map((prob) => {
                 const isSelected = selectedDsa.id === prob.id;
                 const isDone = mastered.includes(prob.id);
                 const isSaved = bookmarks.includes(prob.id);
@@ -699,6 +736,10 @@ export default function InterviewPrep({ onBack }) {
                         <Bookmark size={14} style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
                       )}
                     </div>
+                    <div className="company-tags-mini">
+                      {prob.companies.slice(0, 3).join(' · ')}
+                      {prob.companies.length > 3 && ` +${prob.companies.length - 3}`}
+                    </div>
                   </div>
                 );
               })}
@@ -717,10 +758,19 @@ export default function InterviewPrep({ onBack }) {
                     </span>
                     <span className="tag-complexity">Time: {selectedDsa.timeComplexity}</span>
                     <span className="tag-complexity">Space: {selectedDsa.spaceComplexity}</span>
+                    <span className="tag-pill">{selectedDsa.category}</span>
+                  </div>
+                  <div className="company-tags">
+                    <span className="company-tags-label">Asked at</span>
                     {selectedDsa.companies.map((c) => (
-                      <span key={c} className="tag-pill">
+                      <button
+                        key={c}
+                        className={`company-tag ${companyFilter === c ? 'active' : ''}`}
+                        onClick={() => setCompanyFilter(companyFilter === c ? 'ALL' : c)}
+                        title={`Show problems asked at ${c}`}
+                      >
                         {c}
-                      </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -792,21 +842,35 @@ export default function InterviewPrep({ onBack }) {
                 )}
               </div>
 
+              {selectedDsa.approaches && (
+                <div className="detail-section">
+                  <h3>Approach</h3>
+                  {selectedDsa.approaches.map((ap) => (
+                    <p key={ap.name}>
+                      <strong style={{ color: 'var(--ink)' }}>{ap.name}.</strong>{' '}
+                      {renderInline(ap.explanation)}
+                    </p>
+                  ))}
+                </div>
+              )}
+
               {/* Multi-language Solutions */}
               <div className="detail-section">
-                <h3>Optimal Solution</h3>
+                <h3>Solution</h3>
                 <div className="code-viewer-container">
                   <div className="code-viewer-header">
                     <div className="code-lang-selector">
-                      {['javascript', 'python', 'java'].map((lang) => (
-                        <button
-                          key={lang}
-                          className={`code-lang-btn ${codeLang === lang ? 'active' : ''}`}
-                          onClick={() => setCodeLang(lang)}
-                        >
-                          {lang.toUpperCase()}
-                        </button>
-                      ))}
+                      {Object.entries(CODE_LANGUAGES)
+                        .filter(([lang]) => selectedDsa.solutions[lang])
+                        .map(([lang, label]) => (
+                          <button
+                            key={lang}
+                            className={`code-lang-btn ${codeLang === lang ? 'active' : ''}`}
+                            onClick={() => setCodeLang(lang)}
+                          >
+                            {label}
+                          </button>
+                        ))}
                     </div>
                     <button
                       className="code-copy-btn"

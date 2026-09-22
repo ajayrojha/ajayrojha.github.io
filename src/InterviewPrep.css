@@ -5,22 +5,6 @@
    ======================================================== */
 
 .prep-container {
-  --bg: #171614;
-  --surface: #1e1c19;
-  --surface-2: #24221e;
-  --line: #34312b;
-  --line-soft: #2a2824;
-  --ink: #efeae1;
-  --ink-2: #cbc4b8;
-  --muted: #968f83;
-  --accent: #e0a44c;
-  --accent-strong: #f0b865;
-  --accent-soft: rgba(224, 164, 76, 0.12);
-  --accent-2: #a9bcc6;
-  --green: #8fbf7f;
-  --green-soft: rgba(143, 191, 127, 0.12);
-  --red: #e0806a;
-  --code-bg: #12110f;
   --font-serif: 'Fraunces', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
@@ -41,15 +25,6 @@
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
-}
-
-/* Replace the site's animated gradient backdrop while this page is open */
-body:has(.prep-container) {
-  background: #171614;
-}
-
-body:has(.prep-container)::before {
-  display: none;
 }
 
 .prep-container button,
@@ -295,7 +270,7 @@ body:has(.prep-container)::before {
 .btn-primary {
   background: var(--accent);
   border: 1px solid var(--accent);
-  color: #1b1409;
+  color: var(--accent-ink);
   padding: 0.65rem 1.2rem;
   border-radius: var(--radius);
   font-weight: 600;
@@ -418,7 +393,7 @@ body:has(.prep-container)::before {
 .badge-medium { color: var(--accent); }
 .badge-hard { color: var(--red); }
 .badge-foundational { color: var(--accent-2); }
-.badge-expert { color: #c3a6d6; }
+.badge-expert { color: var(--accent-2); }
 
 /* Detail panel */
 .prep-detail-panel {
@@ -1315,7 +1290,7 @@ body:has(.prep-container)::before {
   border-radius: var(--radius);
   font-size: 0.92rem;
   font-weight: 500;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -1328,7 +1303,6 @@ body:has(.prep-container)::before {
 }
 
 .prep-toast svg {
-  color: #3f7a36;
   flex-shrink: 0;
 }
 
@@ -1577,8 +1551,8 @@ body:has(.prep-container)::before {
 }
 
 .prep-toast.is-error {
-  background: #3a2320;
-  color: #f4d6cf;
+  background: var(--red-soft);
+  color: var(--ink);
   border: 1px solid var(--red);
 }
 
@@ -1598,4 +1572,106 @@ body:has(.prep-container)::before {
     padding: 0.55rem 0.5rem;
     font-size: 0.85rem;
   }
+}
+
+/* Header meta row: last-updated date + theme toggle */
+.prep-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ---------- Algorithms tab: company filter and tags ---------- */
+.company-select {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.company-select select {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.55rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.company-select select:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.coding-note {
+  margin: -0.5rem 0 1.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 760px;
+}
+
+.company-tags-mini {
+  font-size: 0.78rem;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.company-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+}
+
+.company-tags-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-right: 0.2rem;
+}
+
+.company-tag {
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  color: var(--ink);
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.company-tag:hover,
+.company-tag.active {
+  border-color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .company-select {
+    width: 100%;
+  }
+
+  .company-select select {
+    flex: 1;
+    font-size: 16px;
+  }
+
+  .prep-header-meta {
+    gap: 0.6rem;
+  }
+}
+
+/* Inline code in problem descriptions and approaches */
+.detail-section p code {
+  background: var(--surface-2);
+  color: var(--ink);
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.86em;
 }

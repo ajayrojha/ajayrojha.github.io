@@ -7,6 +7,7 @@ import PuzzleGame from './PuzzleGame';
 import BlockStackGame from './BlockStackGame';
 import InterviewPrep from './InterviewPrep';
 import { LAST_UPDATED_ISO, LAST_UPDATED_LABEL } from './lastUpdated';
+import ThemeToggle from './ThemeToggle';
 
 export default function App() {
   const getInitialView = () => {
@@ -168,17 +169,20 @@ export default function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container theme-scope">
       <header>
         <div className="logo" onClick={() => setCurrentView('HOME')}>
           ajayrojha
         </div>
-        {currentView !== 'HOME' && (
-          <button className="back-btn" onClick={() => setCurrentView('HOME')}>
-            <ArrowLeft size={18} />
-            Back to Hub
-          </button>
-        )}
+        <div className="header-actions">
+          {currentView !== 'HOME' && (
+            <button className="back-btn" onClick={() => setCurrentView('HOME')}>
+              <ArrowLeft size={18} />
+              Back to hub
+            </button>
+          )}
+          <ThemeToggle />
+        </div>
       </header>
 
       <main className="main-content">

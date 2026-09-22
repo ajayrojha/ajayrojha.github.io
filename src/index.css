@@ -364,3 +364,119 @@ header {
     font-size: 1.4rem;
   }
 }
+
+/* ========================================================
+   Hub, restyled with the shared soft themes (theme.css)
+   ======================================================== */
+.app-container.theme-scope {
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+.theme-scope .header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.theme-scope .logo {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 600;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: var(--ink);
+}
+
+.theme-scope .back-btn {
+  background: none;
+  border: none;
+  backdrop-filter: none;
+  color: var(--muted);
+  padding: 0.4rem 0;
+  font-weight: 500;
+}
+
+.theme-scope .back-btn:hover {
+  background: none;
+  color: var(--ink);
+  transform: none;
+}
+
+.theme-scope .title {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  color: var(--ink);
+  animation: none;
+}
+
+.theme-scope .subtitle {
+  color: var(--muted);
+  animation: none;
+}
+
+.theme-scope .glass-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  color: var(--ink);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.theme-scope .glass-card::before {
+  display: none;
+}
+
+.theme-scope .glass-card:hover {
+  background: var(--surface);
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+
+.theme-scope .glass-card h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+}
+
+.theme-scope .glass-card p {
+  color: var(--ink-2);
+}
+
+.theme-scope .glass-card .icon-wrapper,
+.theme-scope .glass-card:hover .icon-wrapper {
+  background: var(--accent-soft);
+  border: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.theme-scope .glass-card .icon-wrapper svg {
+  color: var(--accent);
+}
+
+.theme-scope .game-age-badge {
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+.theme-scope .site-footer,
+.theme-scope .site-footer time {
+  color: var(--muted);
+}
+
+.theme-scope .site-footer time {
+  color: var(--ink-2);
+}
+
+@media (max-width: 640px) {
+  .theme-scope .theme-toggle {
+    padding: 0.35rem 0.6rem;
+  }
+}
