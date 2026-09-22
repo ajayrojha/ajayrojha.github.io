@@ -305,3 +305,62 @@ header {
 .puzzle-badge{ background: rgba(236,72,153,0.15);  color: #f472b6; border: 1px solid rgba(236,72,153,0.3); }
 .stack-badge { background: rgba(6,182,212,0.15);   color: #22d3ee; border: 1px solid rgba(6,182,212,0.3); }
 
+
+/* Site footer */
+.site-footer {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.site-footer time {
+  color: var(--text-color);
+}
+
+/* Phones */
+@media (max-width: 640px) {
+  .app-container {
+    padding: 1rem 16px calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  header {
+    margin-bottom: 1rem;
+  }
+
+  .logo {
+    font-size: 1.6rem;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .card-grid {
+    gap: 1rem;
+  }
+
+  .glass-card {
+    width: 100%;
+    padding: 1.75rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .glass-card:hover {
+    transform: none;
+  }
+
+  .glass-card .icon-wrapper {
+    width: 64px;
+    height: 64px;
+  }
+
+  .glass-card h2 {
+    font-size: 1.4rem;
+  }
+}

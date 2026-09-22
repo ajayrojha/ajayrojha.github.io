@@ -6,6 +6,7 @@ import GeographyGame from './GeographyGame';
 import PuzzleGame from './PuzzleGame';
 import BlockStackGame from './BlockStackGame';
 import InterviewPrep from './InterviewPrep';
+import { LAST_UPDATED_ISO, LAST_UPDATED_LABEL } from './lastUpdated';
 
 export default function App() {
   const getInitialView = () => {
@@ -186,6 +187,9 @@ export default function App() {
         
         {content}
       </main>
+      <footer className="site-footer">
+        Last updated <time dateTime={LAST_UPDATED_ISO}>{LAST_UPDATED_LABEL}</time>
+      </footer>
     </div>
   );
 }

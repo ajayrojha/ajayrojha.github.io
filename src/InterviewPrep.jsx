@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   BookOpen,
   Code2,
   Layers,
   MessageSquare,
   Globe,
-  Sparkles,
   Timer,
   Search,
   Bookmark,
@@ -23,15 +22,7 @@ import {
   Trash2,
   Play,
   RotateCcw,
-  Printer,
-  Terminal,
-  Server,
-  Database,
-  Network,
-  Cloud,
-  HardDrive,
-  Monitor,
-  Cpu
+  Printer
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -43,18 +34,8 @@ import {
   MOCK_INTERVIEW_QUESTIONS
 } from './interviewData';
 import { CURRICULUM_DATA } from './curriculumData';
+import { LAST_UPDATED_ISO, LAST_UPDATED_LABEL } from './lastUpdated';
 import './InterviewPrep.css';
-
-const SECTION_ICONS = {
-  Terminal: Terminal,
-  Server: Server,
-  Database: Database,
-  Network: Network,
-  Cloud: Cloud,
-  HardDrive: HardDrive,
-  Monitor: Monitor,
-  Cpu: Cpu
-};
 
 // Renders the light markdown used in answers: **bold**, *italic*, `code`
 function renderInline(text) {
@@ -111,6 +92,40 @@ function renderRich(text) {
   });
 }
 
+const COPY_FAILED_MESSAGE = "Couldn't copy. Your browser blocked clipboard access.";
+
+// Clipboard API with a fallback for browsers/contexts where it is unavailable
+async function writeClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+// Plain-text version of a question and all of its answers
+function formatQAForClipboard(item) {
+  const lines = [`Q: ${item.q}`, `A: ${item.short}`];
+  (item.parts || []).forEach((part) => lines.push(`  - ${part.q} ${part.a}`));
+  if (item.explain) lines.push('', item.explain);
+  lines.push('', item.a.replace(/\*\*/g, ''));
+  return lines.join('\n');
+}
+
 export default function InterviewPrep({ onBack }) {
   const [activeTab, setActiveTab] = useState('CURRICULUM');
   const [searchQuery, setSearchQuery] = useState('');
@@ -156,6 +171,11 @@ export default function InterviewPrep({ onBack }) {
   const [codeLang, setCodeLang] = useState('javascript');
   const [copiedCode, setCopiedCode] = useState(false);
   const [showHints, setShowHints] = useState(false);
+
+  // Toast shown after copying
+  const [toast, setToast] = useState(null); // { ok, message }
+  const toastTimer = useRef(null);
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   // STAR Form State
   const [starForm, setStarForm] = useState({
@@ -268,10 +288,24 @@ export default function InterviewPrep({ onBack }) {
     setTimeout(() => window.print(), 100);
   };
 
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+  const showToast = (ok, message) => {
+    clearTimeout(toastTimer.current);
+    setToast({ ok, message });
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
+  };
+
+  const copyToClipboard = async (text) => {
+    const ok = await writeClipboard(text);
+    if (ok) {
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    }
+    showToast(ok, ok ? 'Code copied to clipboard' : COPY_FAILED_MESSAGE);
+  };
+
+  const copyQuestionAndAnswer = async (item) => {
+    const ok = await writeClipboard(formatQAForClipboard(item));
+    showToast(ok, ok ? 'Question and answer copied to clipboard' : COPY_FAILED_MESSAGE);
   };
 
   // Count total curriculum questions
@@ -360,34 +394,36 @@ export default function InterviewPrep({ onBack }) {
     <div className="prep-container">
       {/* Top Header */}
       <header className="prep-header">
-        <div className="prep-brand">
-          <div className="prep-badge-icon">
-            <Sparkles size={24} />
-          </div>
-          <div className="prep-title-group">
-            <h1>Interview Prep Studio</h1>
-            <p>Full-Stack, .NET, Azure, Architecture &amp; System Mastery</p>
-          </div>
+        <div className="prep-header-top">
+          <button className="back-btn" onClick={onBack}>
+            <ArrowLeft size={16} />
+            Back to hub
+          </button>
+          <p className="prep-updated">
+            Last updated <time dateTime={LAST_UPDATED_ISO}>{LAST_UPDATED_LABEL}</time>
+          </p>
         </div>
 
-        <div className="prep-header-actions">
-          <div className="readiness-pill" title="Mastery Progress">
-            <span>Readiness: {readinessPercent}%</span>
-            <div className="readiness-bar-mini">
+        <div className="prep-brand">
+          <div className="prep-title-group">
+            <h1>Interview Prep</h1>
+            <p>
+              Notes for full-stack .NET interviews: C#, ASP.NET Core, Azure, SQL, frontend,
+              system design and problem solving.
+            </p>
+          </div>
+
+          <div className="readiness-pill" title="Questions you've marked as mastered">
+            <span>
+              <strong>{mastered.length}</strong> of {totalQuestions} mastered
+            </span>
+            <div className="readiness-bar-mini" aria-hidden="true">
               <div
                 className="readiness-fill-mini"
                 style={{ width: `${readinessPercent}%` }}
               />
             </div>
-            <span>
-              ({mastered.length}/{totalQuestions})
-            </span>
           </div>
-
-          <button className="back-btn" onClick={onBack}>
-            <ArrowLeft size={16} />
-            Back to Hub
-          </button>
         </div>
       </header>
 
@@ -398,14 +434,14 @@ export default function InterviewPrep({ onBack }) {
           onClick={() => setActiveTab('CURRICULUM')}
         >
           <BookOpen size={18} />
-          Full Curriculum &amp; Study Guide
+          Study Guide
         </button>
         <button
           className={`prep-tab-btn ${activeTab === 'DSA' ? 'active' : ''}`}
           onClick={() => setActiveTab('DSA')}
         >
           <Code2 size={18} />
-          Algorithms &amp; DSA
+          Algorithms
         </button>
         <button
           className={`prep-tab-btn ${activeTab === 'SYSTEM_DESIGN' ? 'active' : ''}`}
@@ -419,14 +455,14 @@ export default function InterviewPrep({ onBack }) {
           onClick={() => setActiveTab('BEHAVIORAL')}
         >
           <MessageSquare size={18} />
-          Behavioral (STAR)
+          Behavioral
         </button>
         <button
           className={`prep-tab-btn ${activeTab === 'FRONTEND' ? 'active' : ''}`}
           onClick={() => setActiveTab('FRONTEND')}
         >
           <Globe size={18} />
-          Frontend &amp; Web Core
+          Frontend
         </button>
         <button
           className={`prep-tab-btn ${activeTab === 'FLASHCARDS' ? 'active' : ''}`}
@@ -498,7 +534,6 @@ export default function InterviewPrep({ onBack }) {
 
           {/* Curriculum Sections List */}
           {filteredCurriculum.map((section) => {
-            const IconComponent = SECTION_ICONS[section.icon] || BookOpen;
             const sectionCount = section.topics.reduce((n, t) => n + t.questions.length, 0);
             let questionNumber = 0;
 
@@ -506,9 +541,10 @@ export default function InterviewPrep({ onBack }) {
               <section key={section.id} className="cl-section">
                 <div className="cl-section-header">
                   <h2>
-                    <IconComponent size={20} />
                     {section.title}
-                    <span className="cl-count">{sectionCount}</span>
+                    <span className="cl-count">
+                      {sectionCount} {sectionCount === 1 ? 'question' : 'questions'}
+                    </span>
                   </h2>
                   <p>{section.summary}</p>
                 </div>
@@ -529,22 +565,11 @@ export default function InterviewPrep({ onBack }) {
                             <div className="cl-q-row">
                               <span className="cl-num">{questionNumber}.</span>
                               <h4>{renderInline(item.q)}</h4>
-                              <div className="cl-item-tools">
-                                <button
-                                  className="cl-icon-btn"
-                                  onClick={() => copyToClipboard(`${item.q}\n${item.short}`)}
-                                  title="Copy question & one-line answer"
-                                >
-                                  <Copy size={14} />
-                                </button>
-                                <button
-                                  className={`cl-icon-btn ${isMastered ? 'active' : ''}`}
-                                  onClick={() => toggleMastered(qaKey)}
-                                  title={isMastered ? 'Marked as mastered' : 'Mark as mastered'}
-                                >
-                                  <CheckCircle2 size={16} />
-                                </button>
-                              </div>
+                              {isMastered && (
+                                <span className="cl-mastered-tag" title="Marked as mastered">
+                                  <Check size={13} /> Mastered
+                                </span>
+                              )}
                             </div>
 
                             <p className="cl-short">{renderInline(item.short)}</p>
@@ -560,10 +585,30 @@ export default function InterviewPrep({ onBack }) {
                               </ul>
                             )}
 
-                            <button className="cl-more" onClick={() => toggleQA(qaKey)}>
-                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                              {isExpanded ? 'Hide full answer' : 'Full answer'}
-                            </button>
+                            <div className="cl-item-actions">
+                              <button
+                                className="cl-action"
+                                onClick={() => toggleQA(qaKey)}
+                                aria-expanded={isExpanded}
+                              >
+                                {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                {isExpanded ? 'Hide full answer' : 'Full answer'}
+                              </button>
+                              <button
+                                className="cl-action"
+                                onClick={() => copyQuestionAndAnswer(item)}
+                              >
+                                <Copy size={15} /> Copy
+                              </button>
+                              <button
+                                className={`cl-action ${isMastered ? 'is-on' : ''}`}
+                                onClick={() => toggleMastered(qaKey)}
+                                aria-pressed={isMastered}
+                              >
+                                <CheckCircle2 size={15} />
+                                {isMastered ? 'Mastered' : 'Mark as mastered'}
+                              </button>
+                            </div>
 
                             {isExpanded && (
                               <div className="cl-detail">
@@ -648,10 +693,10 @@ export default function InterviewPrep({ onBack }) {
                     <div className="prep-item-sub">
                       <span>{prob.category}</span>
                       {isDone && (
-                        <Check size={14} style={{ color: '#10b981', marginLeft: 'auto' }} />
+                        <Check size={14} style={{ color: 'var(--green)', marginLeft: 'auto' }} />
                       )}
                       {isSaved && (
-                        <Bookmark size={14} style={{ color: '#f59e0b', fill: '#f59e0b' }} />
+                        <Bookmark size={14} style={{ color: 'var(--accent)', fill: 'var(--accent)' }} />
                       )}
                     </div>
                   </div>
@@ -704,7 +749,7 @@ export default function InterviewPrep({ onBack }) {
 
               <div className="detail-section">
                 <h3>Description</h3>
-                <p>{selectedDsa.description}</p>
+                <p>{renderInline(selectedDsa.description)}</p>
               </div>
 
               <div className="detail-section">
@@ -718,7 +763,7 @@ export default function InterviewPrep({ onBack }) {
                       <strong>Output:</strong> {ex.output}
                     </div>
                     {ex.explanation && (
-                      <div style={{ color: '#94a3b8', marginTop: '4px' }}>
+                      <div style={{ color: 'var(--muted)', marginTop: '4px' }}>
                         <strong>Explanation:</strong> {ex.explanation}
                       </div>
                     )}
@@ -814,7 +859,7 @@ export default function InterviewPrep({ onBack }) {
                   <div className="prep-item-sub">
                     <span>{sys.scale}</span>
                     {isDone && (
-                      <Check size={14} style={{ color: '#10b981', marginLeft: 'auto' }} />
+                      <Check size={14} style={{ color: 'var(--green)', marginLeft: 'auto' }} />
                     )}
                   </div>
                 </div>
@@ -893,15 +938,15 @@ export default function InterviewPrep({ onBack }) {
                 <div
                   key={idx}
                   style={{
-                    background: 'rgba(139, 92, 246, 0.05)',
-                    border: '1px solid rgba(139, 92, 246, 0.2)',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--line)',
                     borderRadius: '12px',
                     padding: '1rem 1.25rem',
                     marginBottom: '0.75rem'
                   }}
                 >
-                  <h4 style={{ color: '#c084fc', marginBottom: '0.4rem' }}>{dd.title}</h4>
-                  <p style={{ fontSize: '0.9rem', color: '#e2e8f0' }}>{dd.content}</p>
+                  <h4 style={{ color: 'var(--accent-2)', marginBottom: '0.4rem' }}>{dd.title}</h4>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--ink-2)' }}>{dd.content}</p>
                 </div>
               ))}
             </div>
@@ -930,7 +975,7 @@ export default function InterviewPrep({ onBack }) {
                     <p
                       style={{
                         fontSize: '0.82rem',
-                        color: '#94a3b8',
+                        color: 'var(--muted)',
                         margin: 0,
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
@@ -949,7 +994,7 @@ export default function InterviewPrep({ onBack }) {
             <div className="prep-detail-panel">
               <div className="detail-header">
                 <div className="detail-title-area">
-                  <span className="tag-pill" style={{ color: '#38bdf8' }}>
+                  <span className="tag-pill" style={{ color: 'var(--accent)' }}>
                     {selectedBeh.category}
                   </span>
                   <h2 style={{ marginTop: '0.5rem' }}>{selectedBeh.question}</h2>
@@ -967,13 +1012,7 @@ export default function InterviewPrep({ onBack }) {
 
               <div className="detail-section">
                 <h3>STAR Framework Breakdown</h3>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '1rem'
-                  }}
-                >
+                <div className="star-breakdown-grid">
                   <div className="example-box">
                     <strong>Situation (S):</strong> {selectedBeh.starGuide.situation}
                   </div>
@@ -993,13 +1032,13 @@ export default function InterviewPrep({ onBack }) {
                 <h3>Model High-Scoring Answer</h3>
                 <div
                   style={{
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'var(--code-bg)',
+                    border: '1px solid var(--line)',
                     borderRadius: '12px',
                     padding: '1.25rem',
                     lineHeight: '1.7',
                     whiteSpace: 'pre-line',
-                    color: '#e2e8f0'
+                    color: 'var(--ink-2)'
                   }}
                 >
                   {selectedBeh.sampleAnswer}
@@ -1012,11 +1051,11 @@ export default function InterviewPrep({ onBack }) {
           <div className="star-builder-card">
             <div className="star-builder-header">
               <div>
-                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#f8fafc' }}>
-                  ✍️ Your Personal STAR Story Bank
+                <h3 style={{ fontSize: '1.4rem', fontWeight: 600, color: 'var(--ink)' }}>
+                  Your STAR story bank
                 </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.88rem', margin: '4px 0 0 0' }}>
-                  Structure and save your real project experiences. Saved locally in your browser.
+                <p style={{ color: 'var(--muted)', fontSize: '0.88rem', margin: '4px 0 0 0' }}>
+                  Structure and save your real project experiences. They're saved in this browser only.
                 </p>
               </div>
             </div>
@@ -1082,7 +1121,7 @@ export default function InterviewPrep({ onBack }) {
             {/* Saved Stories List */}
             {starStories.length > 0 && (
               <div style={{ marginTop: '2rem' }}>
-                <h4 style={{ color: '#38bdf8', marginBottom: '1rem' }}>
+                <h4 style={{ color: 'var(--accent)', marginBottom: '1rem' }}>
                   Saved Stories ({starStories.length})
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -1090,8 +1129,8 @@ export default function InterviewPrep({ onBack }) {
                     <div
                       key={story.id}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.03)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: 'var(--surface-2)',
+                        border: '1px solid var(--line)',
                         borderRadius: '12px',
                         padding: '1.25rem'
                       }}
@@ -1104,14 +1143,14 @@ export default function InterviewPrep({ onBack }) {
                           marginBottom: '0.75rem'
                         }}
                       >
-                        <h5 style={{ fontSize: '1.1rem', color: '#f8fafc', margin: 0 }}>
+                        <h5 style={{ fontSize: '1.1rem', color: 'var(--ink)', margin: 0 }}>
                           {story.title}
                         </h5>
                         <button
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: '#ef4444',
+                            color: 'var(--red)',
                             cursor: 'pointer'
                           }}
                           onClick={() => handleDeleteStarStory(story.id)}
@@ -1119,7 +1158,7 @@ export default function InterviewPrep({ onBack }) {
                           <Trash2 size={16} />
                         </button>
                       </div>
-                      <div style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: '1.6' }}>
+                      <div style={{ fontSize: '0.88rem', color: 'var(--ink-2)', lineHeight: '1.6' }}>
                         <p>
                           <strong>S:</strong> {story.situation}
                         </p>
@@ -1169,7 +1208,7 @@ export default function InterviewPrep({ onBack }) {
                   <div className="prep-item-sub">
                     <span>{fe.category}</span>
                     {isDone && (
-                      <Check size={14} style={{ color: '#10b981', marginLeft: 'auto' }} />
+                      <Check size={14} style={{ color: 'var(--green)', marginLeft: 'auto' }} />
                     )}
                   </div>
                 </div>
@@ -1270,20 +1309,20 @@ export default function InterviewPrep({ onBack }) {
                       {filteredFlashcards[flashcardIndex].question}
                     </div>
                     <span className="flashcard-tip">
-                      <RotateCw size={14} /> Click card to flip and view answer
+                      <RotateCw size={14} /> Tap the card to see the answer
                     </span>
                   </div>
 
                   {/* Back Side */}
                   <div className="flashcard-face flashcard-back">
-                    <span className="card-category-tag" style={{ color: '#c084fc' }}>
+                    <span className="card-category-tag" style={{ color: 'var(--accent-2)' }}>
                       Answer Explanation
                     </span>
                     <div className="flashcard-answer">
                       {filteredFlashcards[flashcardIndex].answer}
                     </div>
                     <span className="flashcard-tip">
-                      <RotateCw size={14} /> Click card to flip back
+                      <RotateCw size={14} /> Tap to flip back
                     </span>
                   </div>
                 </div>
@@ -1302,7 +1341,7 @@ export default function InterviewPrep({ onBack }) {
                   <ChevronLeft size={22} />
                 </button>
 
-                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--muted)' }}>
                   {flashcardIndex + 1} of {filteredFlashcards.length}
                 </span>
 
@@ -1336,8 +1375,8 @@ export default function InterviewPrep({ onBack }) {
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: 'rgba(6, 182, 212, 0.15)',
-                  color: '#38bdf8',
+                  background: 'var(--accent-soft)',
+                  color: 'var(--accent)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1346,12 +1385,12 @@ export default function InterviewPrep({ onBack }) {
               >
                 <Timer size={32} />
               </div>
-              <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.75rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.4rem, 4vw, 1.8rem)', fontWeight: 600, marginBottom: '0.75rem' }}>
                 Timed Mock Interview Simulator
               </h2>
               <p
                 style={{
-                  color: '#94a3b8',
+                  color: 'var(--muted)',
                   maxWidth: '520px',
                   margin: '0 auto 2rem auto',
                   lineHeight: '1.6'
@@ -1372,10 +1411,10 @@ export default function InterviewPrep({ onBack }) {
             <div className="mock-card">
               <div className="mock-topbar">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span className="tag-pill" style={{ color: '#38bdf8' }}>
+                  <span className="tag-pill" style={{ color: 'var(--accent)' }}>
                     {MOCK_INTERVIEW_QUESTIONS[mockQuestionIdx].type}
                   </span>
-                  <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--muted)' }}>
                     {MOCK_INTERVIEW_QUESTIONS[mockQuestionIdx].topic}
                   </span>
                 </div>
@@ -1388,7 +1427,7 @@ export default function InterviewPrep({ onBack }) {
 
               <div className="mock-question-box">
                 <h2>{MOCK_INTERVIEW_QUESTIONS[mockQuestionIdx].title}</h2>
-                <p style={{ fontSize: '1.05rem', color: '#e2e8f0', lineHeight: '1.6' }}>
+                <p style={{ fontSize: '1.05rem', color: 'var(--ink-2)', lineHeight: '1.6' }}>
                   {MOCK_INTERVIEW_QUESTIONS[mockQuestionIdx].question}
                 </p>
               </div>
@@ -1441,7 +1480,7 @@ export default function InterviewPrep({ onBack }) {
               </div>
 
               <h2>Mock Interview Performance Report</h2>
-              <p style={{ color: '#94a3b8', maxWidth: '480px' }}>
+              <p style={{ color: 'var(--muted)', maxWidth: '480px' }}>
                 {mockFinalScore >= 80
                   ? 'Outstanding performance! You demonstrated clear technical communication and rigorous analysis.'
                   : mockFinalScore >= 50
@@ -1451,16 +1490,16 @@ export default function InterviewPrep({ onBack }) {
 
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.03)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--line)',
                   borderRadius: '12px',
                   padding: '1.25rem',
                   width: '100%',
                   textAlign: 'left'
                 }}
               >
-                <h4 style={{ color: '#38bdf8', marginBottom: '0.5rem' }}>Sample Solution Reference</h4>
-                <p style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>
+                <h4 style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}>Sample Solution Reference</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--ink-2)' }}>
                   {MOCK_INTERVIEW_QUESTIONS[mockQuestionIdx].sampleSolution}
                 </p>
               </div>
@@ -1472,6 +1511,16 @@ export default function InterviewPrep({ onBack }) {
           )}
         </div>
       )}
+
+      {/* Copy confirmation toast (always mounted so screen readers announce it) */}
+      <div
+        className={`prep-toast ${toast ? 'show' : ''} ${toast && !toast.ok ? 'is-error' : ''}`}
+        role="status"
+        aria-live="polite"
+      >
+        {toast?.ok && <Check size={16} />}
+        {toast?.message}
+      </div>
     </div>
   );
 }
