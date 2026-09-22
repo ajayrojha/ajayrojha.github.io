@@ -56,6 +56,61 @@ const SECTION_ICONS = {
   Cpu: Cpu
 };
 
+// Renders the light markdown used in answers: **bold**, *italic*, `code`
+function renderInline(text) {
+  return text.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/g).map((part, i) => {
+    if (part.startsWith('`') && part.endsWith('`') && part.length > 1) {
+      return <code key={i}>{part.slice(1, -1)}</code>;
+    }
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 3) {
+      return <strong key={i}>{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+// Renders a full answer: fenced code blocks, bullet / numbered lines and paragraphs
+function renderRich(text) {
+  return text.split(/```[a-z]*\n?/).map((chunk, i) => {
+    if (i % 2 === 1) {
+      return (
+        <pre key={i}>
+          <code>{chunk.replace(/\n$/, '')}</code>
+        </pre>
+      );
+    }
+    return chunk
+      .split('\n')
+      .filter((line) => line.trim())
+      .map((line, j) => {
+        const bullet = line.match(/^(\s*)(?:•|-)\s+(.*)$/);
+        const numbered = line.match(/^(\s*)(\d+)\.\s+(.*)$/);
+        if (bullet) {
+          return (
+            <div key={`${i}-${j}`} className={`cl-li ${bullet[1] ? 'nested' : ''}`}>
+              {renderInline(bullet[2])}
+            </div>
+          );
+        }
+        if (numbered) {
+          return (
+            <div key={`${i}-${j}`} className="cl-li numbered" data-n={`${numbered[2]}.`}>
+              {renderInline(numbered[3])}
+            </div>
+          );
+        }
+        return (
+          <p key={`${i}-${j}`} className="cl-para">
+            {renderInline(line.trim())}
+          </p>
+        );
+      });
+  });
+}
+
 export default function InterviewPrep({ onBack }) {
   const [activeTab, setActiveTab] = useState('CURRICULUM');
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,20 +118,8 @@ export default function InterviewPrep({ onBack }) {
 
   // Curriculum specific state
   const [curriculumCategory, setCurriculumCategory] = useState('ALL');
-  const [expandedQAs, setExpandedQAs] = useState(() => {
-    const initial = {};
-    // By default expand first 2 questions of each topic for great first-impression readability
-    CURRICULUM_DATA.forEach((sec) => {
-      sec.topics.forEach((top, topIdx) => {
-        top.questions.forEach((q, qIdx) => {
-          if (topIdx === 0 && qIdx < 2) {
-            initial[`${sec.id}-${top.name}-${qIdx}`] = true;
-          }
-        });
-      });
-    });
-    return initial;
-  });
+  // Full answers start collapsed; the one-liners and sub-answers are always visible
+  const [expandedQAs, setExpandedQAs] = useState({});
 
   // Persistence State
   const [bookmarks, setBookmarks] = useState(() => {
@@ -219,6 +262,12 @@ export default function InterviewPrep({ onBack }) {
     setExpandedQAs({});
   };
 
+  // Expand every answer first so the printout includes the full content
+  const handlePrint = () => {
+    expandAllQAs();
+    setTimeout(() => window.print(), 100);
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(true);
@@ -281,22 +330,24 @@ export default function InterviewPrep({ onBack }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Filtered Curriculum Sections
+  // Filtered Curriculum Sections (each question keeps its original index so
+  // mastered/expanded keys stay stable while searching)
+  const query = searchQuery.trim().toLowerCase();
   const filteredCurriculum = CURRICULUM_DATA.filter(
     (sec) => curriculumCategory === 'ALL' || sec.id === curriculumCategory
   )
     .map((sec) => {
-      if (!searchQuery.trim()) return sec;
-      const query = searchQuery.toLowerCase();
       const filteredTopics = sec.topics
         .map((top) => {
-          const matchedQuestions = top.questions.filter(
-            (q) =>
-              q.q.toLowerCase().includes(query) ||
-              q.a.toLowerCase().includes(query) ||
-              top.name.toLowerCase().includes(query) ||
-              sec.title.toLowerCase().includes(query)
-          );
+          const matchedQuestions = top.questions
+            .map((q, index) => ({ ...q, index }))
+            .filter(
+              (q) =>
+                !query ||
+                [q.q, q.a, q.short, q.explain, top.name, sec.title]
+                  .concat((q.parts || []).flatMap((p) => [p.q, p.a]))
+                  .some((text) => text && text.toLowerCase().includes(query))
+            );
           return { ...top, questions: matchedQuestions };
         })
         .filter((top) => top.questions.length > 0);
@@ -389,7 +440,7 @@ export default function InterviewPrep({ onBack }) {
           onClick={() => setActiveTab('MOCK_SIMULATOR')}
         >
           <Timer size={18} />
-          Mock Simulator
+          Mock Interview
         </button>
       </nav>
 
@@ -398,149 +449,132 @@ export default function InterviewPrep({ onBack }) {
           ============================================================ */}
       {activeTab === 'CURRICULUM' && (
         <div className="curriculum-container">
-          {/* Top Banner with Print & Expand Actions */}
-          <div className="curriculum-banner">
-            <div className="curriculum-banner-text">
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#f8fafc' }}>
-                Complete Technical Interview Syllabus
-              </h3>
-              <p>
-                Structured with clear hierarchy and spacing for optimal web study and physical printing.
-              </p>
-            </div>
-
-            <div className="curriculum-banner-actions">
-              <button className="btn-secondary" onClick={expandAllQAs} title="Expand all question cards">
-                <ChevronDown size={16} /> Expand All
-              </button>
-              <button className="btn-secondary" onClick={collapseAllQAs} title="Collapse all question cards">
-                <ChevronUp size={16} /> Collapse All
-              </button>
-              <button className="btn-primary" onClick={() => window.print()} title="Print or save as PDF">
-                <Printer size={16} /> Print / Export PDF
-              </button>
-            </div>
-          </div>
-
-          {/* Search & Category Filter */}
-          <div className="prep-toolbar">
+          {/* Search, Section Filter & Actions */}
+          <div className="cl-toolbar">
             <div className="prep-search-box">
               <Search className="search-icon" size={16} />
               <input
                 type="text"
-                placeholder="Search across all sections (e.g. LINQ, JWT, Dead-Letter Queue, Signals)..."
+                placeholder="Search questions and answers (e.g. LINQ, JWT, Saga)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <div className="curriculum-nav-chips">
-              <button
-                className={`filter-chip ${curriculumCategory === 'ALL' ? 'active' : ''}`}
-                onClick={() => setCurriculumCategory('ALL')}
-              >
-                All Sections ({CURRICULUM_DATA.length})
+            <div className="cl-actions">
+              <button className="btn-secondary" onClick={expandAllQAs} title="Show every full answer">
+                <ChevronDown size={16} /> Expand All
               </button>
-              {CURRICULUM_DATA.map((sec) => (
-                <button
-                  key={sec.id}
-                  className={`filter-chip ${curriculumCategory === sec.id ? 'active' : ''}`}
-                  onClick={() => setCurriculumCategory(sec.id)}
-                >
-                  {sec.title}
-                </button>
-              ))}
+              <button className="btn-secondary" onClick={collapseAllQAs} title="Hide every full answer">
+                <ChevronUp size={16} /> Collapse All
+              </button>
+              <button className="btn-secondary" onClick={handlePrint} title="Print or save as PDF">
+                <Printer size={16} /> Print
+              </button>
             </div>
           </div>
+
+          <div className="curriculum-nav-chips">
+            <button
+              className={`filter-chip ${curriculumCategory === 'ALL' ? 'active' : ''}`}
+              onClick={() => setCurriculumCategory('ALL')}
+            >
+              All ({totalCurriculumCount})
+            </button>
+            {CURRICULUM_DATA.map((sec) => (
+              <button
+                key={sec.id}
+                className={`filter-chip ${curriculumCategory === sec.id ? 'active' : ''}`}
+                onClick={() => setCurriculumCategory(sec.id)}
+              >
+                {sec.title}
+              </button>
+            ))}
+          </div>
+
+          {filteredCurriculum.length === 0 && (
+            <p className="cl-empty">No questions match &ldquo;{searchQuery}&rdquo;.</p>
+          )}
 
           {/* Curriculum Sections List */}
           {filteredCurriculum.map((section) => {
             const IconComponent = SECTION_ICONS[section.icon] || BookOpen;
+            const sectionCount = section.topics.reduce((n, t) => n + t.questions.length, 0);
+            let questionNumber = 0;
 
             return (
-              <section key={section.id} className="curriculum-section-card">
-                <div className="section-card-header">
-                  <div>
-                    <h2>
-                      <IconComponent size={24} style={{ color: '#38bdf8' }} />
-                      {section.title}
-                    </h2>
-                    <p>{section.summary}</p>
-                  </div>
+              <section key={section.id} className="cl-section">
+                <div className="cl-section-header">
+                  <h2>
+                    <IconComponent size={20} />
+                    {section.title}
+                    <span className="cl-count">{sectionCount}</span>
+                  </h2>
+                  <p>{section.summary}</p>
                 </div>
 
-                {section.topics.map((topic, topIdx) => (
-                  <div key={topIdx} className="curriculum-topic-group">
-                    <div className="topic-group-title">
-                      <span>📌 {topic.name}</span>
-                    </div>
+                {section.topics.map((topic) => (
+                  <div key={topic.name} className="cl-topic">
+                    <h3>{topic.name}</h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {topic.questions.map((item, qIdx) => {
-                        const qaKey = `${section.id}-${topic.name}-${qIdx}`;
+                    <ol className="cl-list">
+                      {topic.questions.map((item) => {
+                        questionNumber += 1;
+                        const qaKey = `${section.id}-${topic.name}-${item.index}`;
                         const isExpanded = !!expandedQAs[qaKey];
                         const isMastered = mastered.includes(qaKey);
 
                         return (
-                          <div key={qIdx} className="qa-item">
-                            <div className="qa-item-header" onClick={() => toggleQA(qaKey)}>
-                              <div className="qa-item-title-wrap">
+                          <li key={qaKey} className={`cl-item ${isMastered ? 'mastered' : ''}`}>
+                            <div className="cl-q-row">
+                              <span className="cl-num">{questionNumber}.</span>
+                              <h4>{renderInline(item.q)}</h4>
+                              <div className="cl-item-tools">
                                 <button
-                                  style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: isMastered ? '#10b981' : '#64748b',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: 0
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleMastered(qaKey);
-                                  }}
-                                  title={isMastered ? 'Marked as Mastered' : 'Mark as Mastered'}
-                                >
-                                  <CheckCircle2 size={18} />
-                                </button>
-                                <h4>{item.q}</h4>
-                              </div>
-
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <button
-                                  style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    color: '#94a3b8',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    alignItems: 'center'
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    copyToClipboard(`${item.q}\n\n${item.a}`);
-                                  }}
-                                  title="Copy Question & Answer"
+                                  className="cl-icon-btn"
+                                  onClick={() => copyToClipboard(`${item.q}\n${item.short}`)}
+                                  title="Copy question & one-line answer"
                                 >
                                   <Copy size={14} />
                                 </button>
-                                {isExpanded ? (
-                                  <ChevronUp size={18} style={{ color: '#38bdf8' }} />
-                                ) : (
-                                  <ChevronDown size={18} style={{ color: '#64748b' }} />
-                                )}
+                                <button
+                                  className={`cl-icon-btn ${isMastered ? 'active' : ''}`}
+                                  onClick={() => toggleMastered(qaKey)}
+                                  title={isMastered ? 'Marked as mastered' : 'Mark as mastered'}
+                                >
+                                  <CheckCircle2 size={16} />
+                                </button>
                               </div>
                             </div>
 
+                            <p className="cl-short">{renderInline(item.short)}</p>
+
+                            {item.parts && (
+                              <ul className="cl-parts">
+                                {item.parts.map((part) => (
+                                  <li key={part.q}>
+                                    <span className="cl-part-q">{renderInline(part.q)}</span>
+                                    <span className="cl-part-a">{renderInline(part.a)}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+
+                            <button className="cl-more" onClick={() => toggleQA(qaKey)}>
+                              {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              {isExpanded ? 'Hide full answer' : 'Full answer'}
+                            </button>
+
                             {isExpanded && (
-                              <div className="qa-item-body">
-                                <div>{item.a}</div>
+                              <div className="cl-detail">
+                                {item.explain && <p className="cl-explain">{renderInline(item.explain)}</p>}
+                                {renderRich(item.a)}
                               </div>
                             )}
-                          </div>
+                          </li>
                         );
                       })}
-                    </div>
+                    </ol>
                   </div>
                 ))}
               </section>
